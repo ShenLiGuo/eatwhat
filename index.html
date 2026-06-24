@@ -49,7 +49,7 @@ body{
 .header-badge:active{background:rgba(255,255,255,.35)}
 
 /* ====== Main ====== */
-.main{flex:1;padding-bottom:calc(var(--cart-h) + var(--safe-b) + 80px)}
+.main{flex:1;padding-bottom:calc(var(--safe-b) + 120px)}
 
 /* ====== Page ====== */
 .page{display:none;animation:fadeUp .25s ease}
@@ -135,7 +135,7 @@ body{
 
 /* ====== Cart Bar (bottom float) ====== */
 .cart-bar{
-  position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;
+  position:fixed;bottom:calc(var(--safe-b) + 50px);left:50%;transform:translateX(-50%);max-width:480px;width:100%;
   background:var(--card);border-top:1px solid var(--border);z-index:100;
   box-shadow:0 -2px 12px rgba(0,0,0,.06);
 }
