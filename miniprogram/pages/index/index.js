@@ -19,7 +19,12 @@ Page({
     cartTotal: 0
   },
 
-  onShow() { this.refresh(); },
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0 });
+    }
+    this.refresh();
+  },
 
   refresh() {
     const cart = app.globalData.cart;

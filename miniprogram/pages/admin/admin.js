@@ -8,7 +8,12 @@ Page({
     dishes: [], stats: []
   },
 
-  onShow() { if (this.data.unlocked) this.refresh(); },
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 2 });
+    }
+    if (this.data.unlocked) this.refresh();
+  },
 
   onPwInput(e) { this.setData({ password: e.detail.value, error: false }); },
   onNameInput(e) { this.setData({ newName: e.detail.value }); },

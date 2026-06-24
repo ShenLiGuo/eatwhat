@@ -1,0 +1,17 @@
+<view class="tab-bar">
+  <view class="tab-item {{selected===0?'active':''}}" bindtap="switchTab" data-index="0" data-path="/pages/index/index">
+    <text class="tab-icon">{{selected===0?'📋':'📋'}}</text>
+    <text class="tab-text">点菜</text>
+    <view class="tab-dot" wx:if="{{selected===0}}"></view>
+  </view>
+  <view class="tab-item {{selected===1?'active':''}}" bindtap="switchTab" data-index="1" data-path="/pages/blindbox/blindbox">
+    <text class="tab-icon">{{selected===1?'🎲':'🎲'}}</text>
+    <text class="tab-text">盲盒</text>
+    <view class="tab-dot" wx:if="{{selected===1}}"></view>
+  </view>
+  <view class="tab-item {{selected===2?'active':''}}" bindtap="switchTab" data-index="2" data-path="/pages/admin/admin">
+    <text class="tab-icon">{{selected===2?'⚙️':'⚙️'}}</text>
+    <text class="tab-text">管理</text>
+    <view class="tab-dot" wx:if="{{selected===2}}"></view>
+  </view>
+</view>
