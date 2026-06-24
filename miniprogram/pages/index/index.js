@@ -74,6 +74,7 @@ Page({
     if (tonight.length > 0) summary += ' · 🍽️今晚' + tonight.reduce((s, [, v]) => s + v.qty, 0) + '道';
     if (tomorrow.length > 0) summary += ' · 🍱明午' + tomorrow.reduce((s, [, v]) => s + v.qty, 0) + '道';
 
+    const that = this;
     wx.showActionSheet({
       itemList: ['📨 完成并推送', '📋 复制清单', '🗑 清空购物车'],
       success(res) {
@@ -83,17 +84,15 @@ Page({
             wx.hideLoading();
             if (result.ok) {
               wx.showToast({ title: '已推送到微信', icon: 'success' });
-              // Clear cart after successful push
               app.globalData.cart = {};
               app.saveCart();
-              this.renderList();
-              this.updateCartBadge();
+              that.renderList();
+              that.updateCartBadge();
             } else {
               wx.showToast({ title: result.msg, icon: 'none' });
             }
-          }.bind(this));
+          });
         } else if (res.tapIndex === 1) {
-          // Copy
           let text = '🍳 点菜清单\n';
           if (tonight.length > 0) { text += '\n🍽️今晚：\n'; tonight.forEach(([n, v]) => { text += n + ' ×' + v.qty + '\n'; }); }
           if (tomorrow.length > 0) { text += '\n🍱明午：\n'; tomorrow.forEach(([n, v]) => { text += n + ' ×' + v.qty + '\n'; }); }
@@ -107,13 +106,13 @@ Page({
               if (r.confirm) {
                 app.globalData.cart = {};
                 app.saveCart();
-                this.renderList();
-                this.updateCartBadge();
+                that.renderList();
+                that.updateCartBadge();
               }
-            }.bind(this)
+            }
           });
         }
-      }.bind(this)
+      }
     });
   }
 });

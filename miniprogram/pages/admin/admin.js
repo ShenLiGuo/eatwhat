@@ -61,6 +61,7 @@ Page({
 
   deleteDish(e) {
     const name = e.currentTarget.dataset.name;
+    const that = this;
     wx.showModal({
       title: '确认删除',
       content: '删除「' + name + '」？',
@@ -69,13 +70,14 @@ Page({
           app.globalData.dishes = app.globalData.dishes.filter(d => d.n !== name);
           if (app.globalData.cart[name]) delete app.globalData.cart[name];
           app.saveDishes(); app.saveCart();
-          this.refresh();
+          that.refresh();
         }
-      }.bind(this)
+      }
     });
   },
 
   resetDishes() {
+    const that = this;
     wx.showModal({
       title: '恢复默认',
       content: '确定恢复为默认50道菜？自定义菜品将被清除。',
@@ -83,10 +85,10 @@ Page({
         if (r.confirm) {
           app.globalData.dishes = cloneDefaults();
           app.saveDishes();
-          this.refresh();
+          that.refresh();
           wx.showToast({ title: '已恢复', icon: 'success' });
         }
-      }.bind(this)
+      }
     });
   }
 });
