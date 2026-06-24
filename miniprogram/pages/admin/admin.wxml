@@ -39,6 +39,6 @@
       </view>
     </view>
 
-    <button class="btn-reset" bindtap="resetDishes">🔄 恢复默认50道菜</button>
+    <view class="pub-row"><button class="btn-pub" bindtap="publishDishes">📡 发布更新</button><button class="btn-reset" bindtap="resetDishes">🔄 恢复默认</button></view>
   </view>
 </view>

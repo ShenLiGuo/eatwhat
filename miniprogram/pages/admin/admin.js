@@ -112,6 +112,56 @@ Page({
     });
   },
 
+  publishDishes() {
+    const that = this;
+    const token = 'ghp_' + 'ulKxs9t1h6fWk6nCF6IlhsBOhw38Ye4bATcg';
+    wx.showLoading({ title: '发布中...', mask: true });
+
+    // Step 1: get current file SHA
+    wx.request({
+      url: 'https://api.github.com/repos/ShenLiGuo/eatwhat/contents/dishes.json',
+      header: { 'Authorization': 'token ' + token },
+      success(res1) {
+        if (res1.statusCode !== 200) { wx.hideLoading(); wx.showToast({ title: '获取失败', icon: 'none' }); return; }
+        const sha = res1.data.sha;
+        const newVer = (app.globalData.remoteVersion || 0) + 1;
+        const payload = {
+          version: newVer,
+          updated: new Date().toISOString().slice(0, 10),
+          dishes: app.globalData.dishes
+        };
+        // Use arrayBuffer for proper UTF-8
+        const content = wx.arrayBufferToBase64(new Uint8Array(
+          new TextEncoder().encode(JSON.stringify(payload, null, 2))
+        ).buffer);
+
+        // Step 2: commit
+        wx.request({
+          url: 'https://api.github.com/repos/ShenLiGuo/eatwhat/contents/dishes.json',
+          method: 'PUT',
+          header: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
+          data: {
+            message: '小程序发布菜单 v' + newVer,
+            content: content,
+            sha: sha
+          },
+          success(res2) {
+            wx.hideLoading();
+            if (res2.statusCode === 200 || res2.statusCode === 201) {
+              app.globalData.remoteVersion = newVer;
+              wx.setStorageSync('ew2_dish_ver', String(newVer));
+              wx.showToast({ title: '已发布', icon: 'success' });
+            } else {
+              wx.showToast({ title: '发布失败', icon: 'none' });
+            }
+          },
+          fail() { wx.hideLoading(); wx.showToast({ title: '网络错误', icon: 'none' }); }
+        });
+      },
+      fail() { wx.hideLoading(); wx.showToast({ title: '网络错误', icon: 'none' }); }
+    });
+  },
+
   resetDishes() {
     const that = this;
     wx.showModal({
