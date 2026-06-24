@@ -1,0 +1,41 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/blindbox/blindbox",
+    "pages/admin/admin"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#E8590C",
+    "navigationBarTitleText": "今天吃啥",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#E8590C",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "点菜",
+        "iconPath": "images/tab-order.png",
+        "selectedIconPath": "images/tab-order-active.png"
+      },
+      {
+        "pagePath": "pages/blindbox/blindbox",
+        "text": "盲盒",
+        "iconPath": "images/tab-box.png",
+        "selectedIconPath": "images/tab-box-active.png"
+      },
+      {
+        "pagePath": "pages/admin/admin",
+        "text": "管理",
+        "iconPath": "images/tab-admin.png",
+        "selectedIconPath": "images/tab-admin-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

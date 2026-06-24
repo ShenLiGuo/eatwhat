@@ -1,0 +1,47 @@
+.page { padding: 32rpx; }
+.hero { text-align: center; margin-bottom: 40rpx; }
+.hero-icon { font-size: 100rpx; display: block; }
+.hero-icon.rolling { animation: shake .5s ease-in-out; }
+@keyframes shake {
+  0%,100%{transform:rotate(0)}
+  20%{transform:rotate(-12deg)}
+  40%{transform:rotate(12deg)}
+  60%{transform:rotate(-8deg)}
+  80%{transform:rotate(8deg)}
+}
+.hero-title { font-size: 36rpx; font-weight: 700; margin: 12rpx 0 8rpx; }
+.hero-desc { font-size: 26rpx; color: #999; }
+.section { margin-bottom: 32rpx; }
+.sec-title { font-size: 28rpx; font-weight: 600; margin-bottom: 16rpx; }
+.flavor-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.flavor-chip {
+  padding: 14rpx 28rpx; border-radius: 32rpx; font-size: 26rpx;
+  border: 2rpx solid #eee; background: #fff; color: #666;
+}
+.flavor-chip.active { background: #FFF4EC; border-color: #E8590C; color: #E8590C; }
+.count-picker { display: flex; align-items: center; justify-content: center; gap: 20rpx; }
+.cp-label { font-size: 28rpx; color: #666; }
+.cp-btn {
+  width: 64rpx; height: 64rpx; border-radius: 50%; border: 3rpx solid #eee;
+  display: flex; align-items: center; justify-content: center; font-size: 36rpx;
+  background: #fff; font-weight: 700;
+}
+.cp-num { font-size: 52rpx; font-weight: 800; color: #E8590C; min-width: 48rpx; text-align: center; }
+.btn-roll {
+  width: 100%; height: 88rpx; border-radius: 44rpx; background: linear-gradient(135deg, #E8590C, #D9480F);
+  color: #fff; font-size: 34rpx; font-weight: 700; border: none; line-height: 88rpx;
+}
+.btn-roll[disabled] { opacity: .5; }
+.result { margin-top: 40rpx; text-align: center; }
+.result-title { font-size: 30rpx; font-weight: 700; margin-bottom: 20rpx; }
+.result-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 16rpx; margin-bottom: 24rpx; }
+.result-item {
+  display: flex; align-items: center; gap: 10rpx; background: #fff;
+  border: 2rpx solid #E8590C; border-radius: 16rpx; padding: 10rpx 20rpx 10rpx 10rpx;
+  font-size: 28rpx; font-weight: 600; color: #E8590C;
+}
+.res-img { width: 64rpx; height: 48rpx; border-radius: 8rpx; }
+.btn-add {
+  width: auto; padding: 16rpx 44rpx; border-radius: 40rpx; border: 3rpx solid #E8590C;
+  background: #fff; color: #E8590C; font-size: 28rpx; font-weight: 600; line-height: 1;
+}

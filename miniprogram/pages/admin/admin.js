@@ -1,0 +1,92 @@
+const { DEFAULT_DISHES, CAT_ORDER, ADMIN_PW, cloneDefaults } = require('../../utils/dishes');
+const app = getApp();
+
+Page({
+  data: {
+    unlocked: false,
+    password: '',
+    error: false,
+    newName: '',
+    dishes: [],
+    stats: []
+  },
+
+  onShow() {
+    if (this.data.unlocked) this.refresh();
+  },
+
+  onPwInput(e) { this.setData({ password: e.detail.value, error: false }); },
+  onNameInput(e) { this.setData({ newName: e.detail.value }); },
+
+  login() {
+    if (this.data.password === ADMIN_PW) {
+      this.setData({ unlocked: true, error: false });
+      this.refresh();
+    } else {
+      this.setData({ error: true, password: '' });
+    }
+  },
+
+  logout() { this.setData({ unlocked: false, password: '' }); },
+
+  refresh() {
+    const dishes = app.globalData.dishes;
+    const isDef = d => DEFAULT_DISHES.some(dd => dd.n === d.n);
+    const list = dishes.map(d => ({ ...d, isDef: isDef(d) }));
+    const stats = CAT_ORDER.map(c => {
+      const count = dishes.filter(d => d.c === c).length;
+      return { label: c, num: count };
+    });
+    this.setData({ dishes: list, stats });
+  },
+
+  addDish() {
+    const name = this.data.newName.trim();
+    if (!name) { wx.showToast({ title: '请输入菜名', icon: 'none' }); return; }
+    if (app.globalData.dishes.some(d => d.n === name)) { wx.showToast({ title: '已存在', icon: 'none' }); return; }
+    const cat = this.detectCat(name);
+    app.globalData.dishes.push({ n: name, c: cat, cs: '川菜', f: ['酱香'], r: true, e: '🍽️', en: name });
+    app.saveDishes();
+    this.setData({ newName: '' });
+    this.refresh();
+  },
+
+  detectCat(name) {
+    if (/鱼|虾|蟹|贝|蛤|鲈/.test(name)) return '海鲜';
+    if (/汤|煲/.test(name)) return '汤煲';
+    if (/凉|拌/.test(name)) return '凉菜';
+    if (/菜|豆|椒|茄|瓜|笋|菇|莲|花|薯|腐/.test(name) && !/肉|鸡|鸭|鱼|虾|蟹|牛|猪|羊|贝|蛤|排|肠|血/.test(name)) return '素菜';
+    return '荤菜';
+  },
+
+  deleteDish(e) {
+    const name = e.currentTarget.dataset.name;
+    wx.showModal({
+      title: '确认删除',
+      content: '删除「' + name + '」？',
+      success(r) {
+        if (r.confirm) {
+          app.globalData.dishes = app.globalData.dishes.filter(d => d.n !== name);
+          if (app.globalData.cart[name]) delete app.globalData.cart[name];
+          app.saveDishes(); app.saveCart();
+          this.refresh();
+        }
+      }.bind(this)
+    });
+  },
+
+  resetDishes() {
+    wx.showModal({
+      title: '恢复默认',
+      content: '确定恢复为默认50道菜？自定义菜品将被清除。',
+      success(r) {
+        if (r.confirm) {
+          app.globalData.dishes = cloneDefaults();
+          app.saveDishes();
+          this.refresh();
+          wx.showToast({ title: '已恢复', icon: 'success' });
+        }
+      }.bind(this)
+    });
+  }
+});

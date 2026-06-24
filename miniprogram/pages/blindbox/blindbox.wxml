@@ -1,0 +1,37 @@
+<view class="page">
+  <view class="hero">
+    <text class="hero-icon {{rolling?'rolling':''}}">🎁</text>
+    <view class="hero-title">随机点菜盲盒</view>
+    <view class="hero-desc">不知道吃什么？选好口味，交给命运！</view>
+  </view>
+
+  <view class="section">
+    <view class="sec-title">🎯 口味偏好（可多选）</view>
+    <view class="flavor-grid">
+      <view class="flavor-chip {{item.active?'active':''}}" wx:for="{{flavors}}" wx:key="k" bindtap="toggleFlavor" data-k="{{item.k}}">{{item.e}} {{item.k}}</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="count-picker">
+      <text class="cp-label">抽</text>
+      <view class="cp-btn" bindtap="changeCount" data-d="{{-1}}">−</view>
+      <text class="cp-num">{{count}}</text>
+      <view class="cp-btn" bindtap="changeCount" data-d="{{1}}">+</view>
+      <text class="cp-label">道菜</text>
+    </view>
+  </view>
+
+  <button class="btn-roll" bindtap="roll" disabled="{{rolling}}">🎰 开 盲 盒</button>
+
+  <view class="result" wx:if="{{results.length>0}}">
+    <view class="result-title">🎯 为你抽中：</view>
+    <view class="result-list">
+      <view class="result-item" wx:for="{{results}}" wx:key="n" style="animation-delay:{{index*0.08}}s">
+        <image class="res-img" src="{{item.imgUrl}}" mode="aspectFill" />
+        <text>{{item.n}}</text>
+      </view>
+    </view>
+    <button class="btn-add" bindtap="addToCart">📋 全部加入购物车</button>
+  </view>
+</view>
