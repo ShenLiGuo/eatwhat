@@ -518,7 +518,7 @@ body{
   <div class="drawer-body" id="drawerBody"></div>
   <div class="drawer-footer" id="drawerFooter">
     <div class="drawer-total"><span id="drawerTotal"></span></div>
-    <div class="drawer-actions"><button class="btn-copy" onclick="copyOrder()">📋 复制</button><button class="btn-done" onclick="sendToWechat();closeCartDrawer()">完成 📨</button></div>
+    <div class="drawer-actions"><button class="btn-copy" onclick="copyOrder()">📋 复制</button><button class="btn-done" id="btnDone" onclick="handleDone()">完成 📨</button></div>
   </div>
 </div>
 
@@ -928,6 +928,18 @@ function fallbackCopy(text){
 const WXPUSHER_TOKEN = 'AT_mWuqNMxKmPtxGkA4FE4hWfXHNwNvV6RX';
 const WXPUSHER_UID = 'UID_xhuwqaNXh5uktmMbN6WH0zfuLL01';
 
+let pushing = false;
+async function handleDone(){
+  if(pushing) return;
+  pushing = true;
+  const btn = document.getElementById('btnDone');
+  if(btn){ btn.textContent = '发送中...'; btn.disabled = true; }
+  await sendToWechat();
+  if(btn){ btn.textContent = '完成 📨'; btn.disabled = false; }
+  pushing = false;
+  closeCartDrawer();
+}
+
 async function sendToWechat(){
   const entries = getCartEntries();
   if(entries.length===0){ toast('购物车是空的'); return; }
@@ -945,37 +957,23 @@ async function sendToWechat(){
   if(tomorrow.length>0) summary += ' | 明午：'+tomorrow.map(([n])=>n).join('、');
 
   toast('📨 正在推送...');
-  const payload = JSON.stringify({
-    appToken: WXPUSHER_TOKEN,
-    content: html,
-    summary: summary,
-    contentType: 2,
-    uids: [WXPUSHER_UID]
-  });
-
-  // Try standard CORS request first
   try{
     const resp = await fetch('https://wxpusher.zjiecode.com/api/send/message',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: payload
+      body: JSON.stringify({
+        appToken: WXPUSHER_TOKEN,
+        content: html,
+        summary: summary,
+        contentType: 2,
+        uids: [WXPUSHER_UID]
+      })
     });
     const data = await resp.json();
-    if(data.code===1000){ toast('✅ 已推送到微信！'); return; }
-    else { toast('❌ '+data.msg); return; }
+    if(data.code===1000) toast('✅ 已推送到微信！');
+    else toast('❌ '+data.msg);
   }catch(e){
-    // CORS likely blocked, try no-cors mode
-    try{
-      await fetch('https://wxpusher.zjiecode.com/api/send/message',{
-        method:'POST',
-        mode:'no-cors',
-        headers:{'Content-Type':'text/plain'},
-        body: payload
-      });
-      toast('✅ 已推送（后台发送中）');
-    }catch(e2){
-      toast('❌ 网络不通，请稍后重试');
-    }
+    console.error(e); toast('❌ 推送失败，请重试');
   }
 }
 
