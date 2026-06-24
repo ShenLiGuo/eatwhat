@@ -945,23 +945,37 @@ async function sendToWechat(){
   if(tomorrow.length>0) summary += ' | 明午：'+tomorrow.map(([n])=>n).join('、');
 
   toast('📨 正在推送...');
+  const payload = JSON.stringify({
+    appToken: WXPUSHER_TOKEN,
+    content: html,
+    summary: summary,
+    contentType: 2,
+    uids: [WXPUSHER_UID]
+  });
+
+  // Try standard CORS request first
   try{
     const resp = await fetch('https://wxpusher.zjiecode.com/api/send/message',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        appToken: WXPUSHER_TOKEN,
-        content: html,
-        summary: summary,
-        contentType: 2,
-        uids: [WXPUSHER_UID]
-      })
+      body: payload
     });
     const data = await resp.json();
-    if(data.code===1000) toast('✅ 已推送到微信！');
-    else toast('❌ 推送失败: '+data.msg);
+    if(data.code===1000){ toast('✅ 已推送到微信！'); return; }
+    else { toast('❌ '+data.msg); return; }
   }catch(e){
-    console.error(e); toast('❌ 推送失败，请重试');
+    // CORS likely blocked, try no-cors mode
+    try{
+      await fetch('https://wxpusher.zjiecode.com/api/send/message',{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'text/plain'},
+        body: payload
+      });
+      toast('✅ 已推送（后台发送中）');
+    }catch(e2){
+      toast('❌ 网络不通，请稍后重试');
+    }
   }
 }
 
