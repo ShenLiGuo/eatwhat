@@ -125,10 +125,15 @@ Page({
         if (res1.statusCode !== 200) { wx.hideLoading(); wx.showToast({ title: '获取失败', icon: 'none' }); return; }
         const sha = res1.data.sha;
         const newVer = (app.globalData.remoteVersion || 0) + 1;
+        // Strip customImg (base64 too large), images stay local
+        const cleanDishes = app.globalData.dishes.map(d => {
+          const { customImg, ...rest } = d;
+          return rest;
+        });
         const payload = {
           version: newVer,
           updated: new Date().toISOString().slice(0, 10),
-          dishes: app.globalData.dishes
+          dishes: cleanDishes
         };
         // Use arrayBuffer for proper UTF-8
         const content = wx.arrayBufferToBase64(new Uint8Array(
