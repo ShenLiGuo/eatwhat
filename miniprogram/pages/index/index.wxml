@@ -1,38 +1,36 @@
 <!-- 点菜页 -->
 <view class="page">
-  <!-- 搜索 -->
   <view class="search-bar">
-    <input class="search-inp" placeholder="🔍 搜菜品..." value="{{search}}" bindinput="onSearch" />
+    <input class="search-inp" placeholder="🔍 搜菜品..." value="{{search}}" bindinput="onSearch"/>
   </view>
 
-  <!-- 品类标签 -->
-  <scroll-view class="cat-scroll" scroll-x>
+  <scroll-view class="cat-scroll" scroll-x enhanced show-scrollbar="{{false}}">
     <view class="cat-tab {{activeCat==='全部'?'active':''}}" bindtap="setCat" data-cat="全部">全部</view>
     <view class="cat-tab {{activeCat===item?'active':''}}" wx:for="{{cats}}" wx:key="*this" bindtap="setCat" data-cat="{{item}}">{{item}}</view>
   </scroll-view>
 
-  <!-- 筛选 -->
   <view class="filter-row">
-    <text class="filter-label">筛选:</text>
     <view class="filter-chip {{activeFilter==='all'?'active':''}}" bindtap="setFilter" data-f="all">全部</view>
-    <view class="filter-chip {{activeFilter==='reheat'?'active':''}}" bindtap="setFilter" data-f="reheat">🍱 适合带饭</view>
-    <view class="filter-chip {{activeFilter==='sichuan'?'active':''}}" bindtap="setFilter" data-f="sichuan">🌶️ 川菜</view>
-    <view class="filter-chip {{activeFilter==='canton'?'active':''}}" bindtap="setFilter" data-f="canton">🦐 粤菜</view>
+    <view class="filter-chip {{activeFilter==='reheat'?'active':''}}" bindtap="setFilter" data-f="reheat">🍱带饭</view>
+    <view class="filter-chip {{activeFilter==='sichuan'?'active':''}}" bindtap="setFilter" data-f="sichuan">川菜</view>
+    <view class="filter-chip {{activeFilter==='canton'?'active':''}}" bindtap="setFilter" data-f="canton">粤菜</view>
   </view>
 
-  <!-- 菜品列表 -->
   <view class="dish-list">
     <block wx:if="{{filteredDishes.length>0}}">
       <view class="dish-card" wx:for="{{filteredDishes}}" wx:key="n">
-        <image class="dish-img" src="{{item.imgUrl}}" mode="aspectFill" lazy-load />
+        <view class="dish-img-wrap">
+          <image class="dish-img" src="{{item.imgUrl}}" mode="aspectFill" lazy-load binderror="onImgErr" data-index="{{index}}"/>
+          <view class="dish-img-fb" wx:if="{{item.imgErr}}" style="background:{{item.fbBg}}">{{item.e}}</view>
+        </view>
         <view class="dish-info">
-          <view class="dish-name">{{item.e}} {{item.n}}</view>
-          <view class="dish-tags">
+          <view class="dish-name">{{item.n}}</view>
+          <view class="dish-meta">
             <text class="tag cs-tag">{{item.cs}}</text>
-            <text class="tag" wx:for="{{item.f}}" wx:for-item="fl" wx:key="*this">{{fl}}</text>
+            <text class="tag re-tag {{item.r?'re-good':'re-fresh'}}">{{item.r?'🍱带饭':'⏰现吃'}}</text>
           </view>
           <view class="dish-foot">
-            <text class="reheat-tag">{{item.r ? '🍱 适合带饭' : '⏰ 现吃更佳'}}</text>
+            <text class="flavor-text">{{item.f[0]}}{{item.f[1]?'·'+item.f[1]:''}}</text>
             <view class="qty-ctrl">
               <view class="qty-btn minus" wx:if="{{item.qty>0}}" bindtap="changeQty" data-name="{{item.n}}" data-delta="{{-1}}">−</view>
               <text class="qty-num" wx:if="{{item.qty>0}}">{{item.qty}}</text>
@@ -46,12 +44,10 @@
   </view>
 </view>
 
-<!-- 底部购物车栏 -->
 <view class="cart-bar" bindtap="showCart" wx:if="{{cartTotal>0}}">
-  <view class="cart-icon has-items">🛒</view>
+  <view class="cart-icon">🛒</view>
   <view class="cart-info">
-    <text class="cart-title">共 {{cartTotal}} 道菜</text>
-    <text class="cart-hint">点击查看菜单</text>
+    <text class="cart-title">已选 {{cartTotal}} 道</text>
   </view>
   <view class="cart-badge">{{cartTotal}}</view>
 </view>
