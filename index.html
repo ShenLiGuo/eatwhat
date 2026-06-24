@@ -339,6 +339,13 @@ body{
   background:transparent;color:var(--text2);font-size:13px;cursor:pointer
 }
 .btn-reset:active{border-color:var(--red);color:var(--red);background:#FFF5F5}
+.btn-publish{
+  flex:1;padding:12px;border:none;border-radius:var(--radius-sm);
+  background:var(--primary);color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s
+}
+.btn-publish:active{background:var(--primary-dark)}
+.btn-publish.has-changes{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(233,89,12,.4)}50%{box-shadow:0 0 0 8px rgba(233,89,12,0)}}
 
 /* ====== Tab Bar ====== */
 .tab-bar{
@@ -465,7 +472,7 @@ body{
         </div>
         <div class="admin-stats" id="adminStats"></div>
         <div class="admin-dish-list" id="adminDishList"></div>
-        <button class="btn-reset" onclick="resetDishes()">🔄 恢复默认50道菜</button>
+        <div style="display:flex;gap:8px;margin-top:16px"><button class="btn-publish" onclick="publishDishes()" id="btnPublish">📡 发布更新</button><button class="btn-reset" onclick="resetDishes()" style="margin-top:0;flex:1">🔄 恢复默认</button></div>
       </div>
     </div>
   </div>
@@ -605,7 +612,11 @@ const FLAVORS = [
 
 const STORAGE_DISHES = 'ew2_dishes';
 const STORAGE_CART = 'ew2_cart';
+const STORAGE_DISH_VER = 'ew2_dish_ver';
+const STORAGE_GH_TOKEN = 'ew2_gh_token';
 const ADMIN_PW = '991021';
+const REMOTE_DISHES_URL = 'https://shenliguo.github.io/eatwhat/dishes.json';
+const GH_API_URL = 'https://api.github.com/repos/ShenLiGuo/eatwhat/contents/dishes.json';
 
 // ==================== STATE ====================
 let dishes = [];
@@ -616,16 +627,95 @@ let bbQty = 2;
 let bbResult = [];
 let isAdmin = false;
 let dialogCb = null;
+let remoteVersion = 0;
+let adminHasPendingChanges = false;
 
 // ==================== INIT ====================
-function loadDishes(){
+function cloneDefaults(){ return DEFAULT_DISHES.map(d=>({...d})); }
+
+async function loadDishes(){
+  // 1. Try to fetch latest from GitHub Pages
+  try{
+    const resp = await fetch(REMOTE_DISHES_URL + '?t=' + Date.now(), {cache:'no-cache'});
+    if(resp.ok){
+      const data = await resp.json();
+      if(data && data.dishes && Array.isArray(data.dishes)){
+        remoteVersion = data.version || 0;
+        const localVer = parseInt(localStorage.getItem(STORAGE_DISH_VER) || '0');
+        if(remoteVersion > localVer){
+          // Remote is newer, use it
+          dishes = data.dishes;
+          localStorage.setItem(STORAGE_DISHES, JSON.stringify(dishes));
+          localStorage.setItem(STORAGE_DISH_VER, String(remoteVersion));
+          console.log('📡 已同步最新菜单 v' + remoteVersion);
+          return;
+        }
+      }
+    }
+  }catch(e){ console.log('⚠️ 网络获取失败，使用本地缓存'); }
+
+  // 2. Fall back to localStorage
   const s = localStorage.getItem(STORAGE_DISHES);
   if(s){ try{ dishes = JSON.parse(s); }catch(e){ dishes = cloneDefaults(); } }
   else dishes = cloneDefaults();
   if(!Array.isArray(dishes) || dishes.length===0) dishes = cloneDefaults();
 }
-function cloneDefaults(){ return DEFAULT_DISHES.map(d=>({...d})); }
-function saveDishes(){ localStorage.setItem(STORAGE_DISHES, JSON.stringify(dishes)); }
+
+function saveDishes(){
+  localStorage.setItem(STORAGE_DISHES, JSON.stringify(dishes));
+  adminHasPendingChanges = true;
+  const btn = document.getElementById('btnPublish');
+  if(btn){ btn.classList.add('has-changes'); btn.textContent = '📡 发布更新 ●'; }
+}
+
+async function publishDishes(){
+  const token = localStorage.getItem(STORAGE_GH_TOKEN);
+  if(!token){ toast('⚠️ 请先设置 GitHub Token'); showTokenInput(); return; }
+
+  toast('⏳ 正在发布...');
+  try{
+    // Get current file SHA
+    const getResp = await fetch(GH_API_URL, {headers:{Authorization:'token '+token}});
+    if(!getResp.ok) throw new Error('GET failed: '+getResp.status);
+    const fileInfo = await getResp.json();
+    const sha = fileInfo.sha;
+
+    // Prepare new data
+    const newVersion = (remoteVersion || 0) + 1;
+    const payload = {
+      version: newVersion,
+      updated: new Date().toISOString().slice(0,10),
+      dishes: dishes
+    };
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+
+    // Commit
+    const putResp = await fetch(GH_API_URL, {
+      method:'PUT',
+      headers:{'Authorization':'token '+token,'Content-Type':'application/json'},
+      body: JSON.stringify({message:'Update dishes to v'+newVersion, content:content, sha:sha})
+    });
+    if(!putResp.ok) throw new Error('PUT failed: '+putResp.status);
+
+    remoteVersion = newVersion;
+    localStorage.setItem(STORAGE_DISH_VER, String(newVersion));
+    adminHasPendingChanges = false;
+    const btn = document.getElementById('btnPublish');
+    if(btn){ btn.classList.remove('has-changes'); btn.textContent = '📡 发布更新'; }
+    toast('✅ 已发布！其他人刷新即可看到更新');
+  }catch(e){
+    console.error(e);
+    toast('❌ 发布失败: '+e.message);
+  }
+}
+
+function showTokenInput(){
+  const token = prompt('请输入 GitHub Personal Access Token：\n\n获取方式：github.com → Settings → Developer settings → Personal access tokens → Generate new token (classic)\n勾选 repo 权限即可\n\nToken 会保存在本机浏览器中');
+  if(token && token.trim()){
+    localStorage.setItem(STORAGE_GH_TOKEN, token.trim());
+    toast('✅ Token 已保存，请再次点击发布');
+  }
+}
 
 function loadCart(){
   const s = localStorage.getItem(STORAGE_CART);
@@ -633,7 +723,12 @@ function loadCart(){
 }
 function saveCart(){ localStorage.setItem(STORAGE_CART, JSON.stringify(cart)); }
 
-loadDishes(); loadCart();
+(async function init(){
+  await loadDishes();
+  loadCart();
+  renderOrder();
+  updateAllCartUI();
+})();
 
 // ==================== TAB ====================
 function switchTab(tab){
@@ -1088,9 +1183,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Admin enter key
   document.getElementById('adminPw').addEventListener('keydown',e=>{if(e.key==='Enter')adminLogin();});
   document.getElementById('newDishName').addEventListener('keydown',e=>{if(e.key==='Enter')addDish();});
-  // Initial render
-  renderOrder();
-  updateAllCartUI();
 });
 
 function clearSearch(){
