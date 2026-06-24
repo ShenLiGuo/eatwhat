@@ -15,7 +15,6 @@ Page({
       this.getTabBar().setData({ selected: 1 });
     }
   },
-  },
 
   toggleFlavor(e) {
     const k = e.currentTarget.dataset.k;
