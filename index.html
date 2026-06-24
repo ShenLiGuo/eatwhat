@@ -103,13 +103,12 @@ body{
 }
 .dish-card:active{transform:scale(.985);background:#fefefe}
 .dish-img{
-  width:100px;min-height:100px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  font-size:44px;position:relative;overflow:hidden
+  width:100px;min-height:100px;flex-shrink:0;position:relative;overflow:hidden;border-radius:8px 0 0 8px;background:#f0f0f0
 }
-.dish-img .emoji-bg{font-size:52px;opacity:.75;transition:transform .3s}
-.dish-img::after{
-  content:'';position:absolute;bottom:0;right:0;width:50px;height:50px;
-  background:inherit;border-radius:50% 0 0 0;transform:translate(30%,30%)
+.dish-img img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
+.dish-img .fallback{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  font-size:44px;position:absolute;inset:0;background:var(--fb-bg, #FFF0E6)
 }
 .dish-info{flex:1;padding:12px 12px 12px 0;display:flex;flex-direction:column;justify-content:center;min-width:0}
 .dish-name{font-size:15px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:4px}
@@ -269,8 +268,9 @@ body{
 .bb-result-dishes{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:14px}
 .bb-res-dish{
   background:var(--card);border:2px solid var(--primary-light);border-radius:var(--radius-sm);
-  padding:10px 16px;font-size:14px;font-weight:600;color:var(--primary);
-  animation:popIn .3s ease forwards;opacity:0
+  padding:8px 14px 8px 8px;font-size:14px;font-weight:600;color:var(--primary);
+  animation:popIn .3s ease forwards;opacity:0;
+  display:flex;align-items:center;gap:8px
 }
 @keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
 .btn-add-bb{
@@ -593,7 +593,7 @@ const FLAVORS = [
 
 const STORAGE_DISHES = 'ew2_dishes';
 const STORAGE_CART = 'ew2_cart';
-const ADMIN_PW = 'admin123';
+const ADMIN_PW = '991021';
 
 // ==================== STATE ====================
 let dishes = [];
@@ -681,8 +681,9 @@ function renderDishList(){
     const fTags = d.f.slice(0,2).map(f=>`<span class="dish-tag">${f}</span>`).join('');
     return `
     <div class="dish-card">
-      <div class="dish-img" style="background:${grad}">
-        <span class="emoji-bg">${d.e}</span>
+      <div class="dish-img" style="--fb-bg:${grad}">
+        <img src="${dishImgUrl(d)}" alt="${d.n}" loading="lazy" onerror="this.style.display='none';this.parentElement.querySelector('.fallback').style.display='flex'">
+        <span class="fallback" style="display:none">${d.e}</span>
       </div>
       <div class="dish-info">
         <div class="dish-name">${d.n}</div>
@@ -885,7 +886,7 @@ function showBBResult(){
   document.getElementById('bbResult').innerHTML = `
     <h4>🎯 为你抽中：</h4>
     <div class="bb-result-dishes">
-      ${bbResult.map((d,i)=>`<span class="bb-res-dish" style="animation-delay:${i*0.08}s">${d.e} ${d.n}</span>`).join('')}
+      ${bbResult.map((d,i)=>`<div class="bb-res-dish" style="animation-delay:${i*0.08}s"><img src="${dishImgUrl(d)}" alt="${d.n}" loading="lazy" onerror="this.style.display='none'" style="width:48px;height:48px;border-radius:8px;object-fit:cover"><span>${d.n}</span></div>`).join('')}
     </div>
     <button class="btn-add-bb" onclick="addBBToCart()">📋 全部加入购物车</button>
   `;
@@ -984,6 +985,11 @@ function resetDishes(){
 }
 
 // ==================== UTILS ====================
+function dishImgUrl(d){
+  // Use Unsplash source for real food photos by dish name
+  return `https://source.unsplash.com/400x300/?${encodeURIComponent(d.n)},chinese-food,cuisine`;
+}
+
 function esc(s){ return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
 function unesc(s){ return s.replace(/\\\\/g,'\\').replace(/\\'/g,"'").replace(/\\"/g,'"'); }
 
@@ -997,7 +1003,7 @@ function showDialog(msg,cb){
   document.getElementById('dMsg').innerHTML=msg;
   document.getElementById('dOverlay').classList.add('show');
   dialogCb=cb;
-  document.getElementById('dOk').onclick=()=>{closeDialog();if(dialogCb)dialogCb();};
+  document.getElementById('dOk').onclick=()=>{const cb=dialogCb;closeDialog();if(cb)cb();};
 }
 function closeDialog(){
   document.getElementById('dOverlay').classList.remove('show');
