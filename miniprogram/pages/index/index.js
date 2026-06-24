@@ -94,7 +94,7 @@ Page({
     text += '\n━━━━━━━━━━━━━\n共 ' + total + ' 道菜 · 二人食';
 
     wx.showActionSheet({
-      itemList: ['✅ 完成（显示清单）', '📋 复制到剪贴板', '🗑 清空购物车'],
+      itemList: ['✅ 完成', '🗑 清空购物车'],
       success(res) {
         if (res.tapIndex === 0) {
           wx.showModal({
@@ -111,8 +111,6 @@ Page({
             }
           });
         } else if (res.tapIndex === 1) {
-          wx.setClipboardData({ data: text, success: () => wx.showToast({ title: '已复制', icon: 'success' }) });
-        } else if (res.tapIndex === 2) {
           wx.showModal({
             title: '清空购物车',
             content: '确定清空所有已选菜品？',

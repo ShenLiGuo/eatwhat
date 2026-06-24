@@ -1,13 +1,11 @@
 <view class="page">
-  <!-- Lock screen -->
   <view class="lock" wx:if="{{!unlocked}}">
     <text class="lock-icon">🔐</text>
-    <input class="lock-inp" type="password" placeholder="请输入管理密码" value="{{password}}" bindinput="onPwInput" />
+    <input class="lock-inp" type="password" placeholder="请输入管理密码" value="{{password}}" bindinput="onPwInput"/>
     <button class="lock-btn" bindtap="login">验证进入</button>
     <text class="lock-error" wx:if="{{error}}">密码错误</text>
   </view>
 
-  <!-- Admin panel -->
   <view class="panel" wx:if="{{unlocked}}">
     <view class="panel-header">
       <text class="panel-title">📝 菜单管理</text>
@@ -15,8 +13,13 @@
     </view>
 
     <view class="add-form">
-      <input class="add-inp" placeholder="菜品名称" value="{{newName}}" bindinput="onNameInput" />
+      <input class="add-inp" placeholder="菜品名称" value="{{newName}}" bindinput="onNameInput"/>
+      <button class="btn-img" bindtap="pickAddImg">📷</button>
       <button class="btn-add" bindtap="addDish" size="mini">➕ 添加</button>
+    </view>
+    <view class="preview-row" wx:if="{{addImgPath}}">
+      <image class="preview-img" src="{{addImgPath}}" mode="aspectFill"/>
+      <text class="preview-tip">图片已选</text>
     </view>
 
     <view class="stats">
@@ -28,10 +31,10 @@
 
     <view class="dish-list">
       <view class="dish-item" wx:for="{{dishes}}" wx:key="n">
-        <text class="item-emoji">{{item.e}}</text>
+        <image class="item-thumb" src="{{item.thumb}}" mode="aspectFill" wx:if="{{item.thumb}}"/>
+        <text class="item-emoji" wx:else>{{item.e}}</text>
         <text class="item-name">{{item.n}}</text>
-        <text class="item-badge {{item.isDef?'def':'custom'}}">{{item.isDef?'默认':'自定义'}}</text>
-        <text class="item-cat">{{item.c}}</text>
+        <button class="btn-cam" bindtap="changeImg" data-name="{{item.n}}" size="mini">📷</button>
         <button class="btn-del" bindtap="deleteDish" data-name="{{item.n}}" size="mini">✕</button>
       </view>
     </view>

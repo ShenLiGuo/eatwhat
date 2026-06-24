@@ -13,12 +13,16 @@
 .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
 .panel-title { font-size: 34rpx; font-weight: 700; }
 .btn-logout { color: #999 !important; background: none !important; }
-.add-form { display: flex; gap: 16rpx; margin-bottom: 24rpx; }
+.add-form { display: flex; gap: 12rpx; margin-bottom: 16rpx; }
 .add-inp {
   flex: 1; height: 72rpx; border: 2rpx solid #eee; border-radius: 36rpx;
   padding: 0 24rpx; font-size: 28rpx;
 }
+.btn-img { height: 72rpx; width: 72rpx; background: #f0f0f0; color: #555; line-height: 72rpx; border-radius: 36rpx; padding: 0; font-size: 30rpx; }
 .btn-add { height: 72rpx; background: #E8590C; color: #fff; line-height: 72rpx; border-radius: 36rpx; }
+.preview-row { display: flex; align-items: center; gap: 12rpx; margin-bottom: 16rpx; }
+.preview-img { width: 80rpx; height: 60rpx; border-radius: 8rpx; }
+.preview-tip { font-size: 24rpx; color: #999; }
 .stats { display: flex; gap: 12rpx; margin-bottom: 24rpx; }
 .stat-item {
   flex: 1; text-align: center; background: #fff; border-radius: 12rpx;
@@ -28,16 +32,14 @@
 .stat-label { font-size: 22rpx; color: #999; display: block; }
 .dish-list { display: flex; flex-direction: column; gap: 12rpx; margin-bottom: 24rpx; max-height: 500rpx; overflow-y: auto; }
 .dish-item {
-  display: flex; align-items: center; gap: 12rpx; background: #fff;
-  padding: 16rpx 16rpx; border-radius: 12rpx; font-size: 28rpx;
+  display: flex; align-items: center; gap: 10rpx; background: #fff;
+  padding: 12rpx 14rpx; border-radius: 12rpx; font-size: 28rpx;
 }
-.item-emoji { font-size: 32rpx; flex-shrink: 0; }
+.item-thumb { width: 64rpx; height: 48rpx; border-radius: 8rpx; flex-shrink: 0; }
+.item-emoji { font-size: 32rpx; flex-shrink: 0; width: 48rpx; text-align: center; }
 .item-name { flex: 1; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.item-badge { font-size: 20rpx; padding: 2rpx 12rpx; border-radius: 12rpx; }
-.item-badge.def { background: #f5f5f5; color: #bbb; }
-.item-badge.custom { background: #FFF4EC; color: #E8590C; }
-.item-cat { font-size: 20rpx; color: #bbb; }
-.btn-del { background: #FEE !important; color: #F03E3E !important; border: none !important; font-size: 24rpx; min-width: 48rpx; }
+.btn-cam { background: #f0f0f0 !important; color: #555 !important; border: none !important; font-size: 22rpx; min-width: 52rpx; padding: 0 8rpx; }
+.btn-del { background: #FEE !important; color: #F03E3E !important; border: none !important; font-size: 22rpx; min-width: 52rpx; padding: 0 8rpx; }
 .btn-reset {
   width: 100%; height: 72rpx; border: 2rpx dashed #ddd; border-radius: 16rpx;
   background: none; color: #999; font-size: 26rpx;
