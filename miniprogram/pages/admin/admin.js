@@ -135,10 +135,9 @@ Page({
           updated: new Date().toISOString().slice(0, 10),
           dishes: cleanDishes
         };
-        // Use arrayBuffer for proper UTF-8
-        const content = wx.arrayBufferToBase64(new Uint8Array(
-          new TextEncoder().encode(JSON.stringify(payload, null, 2))
-        ).buffer);
+        // UTF-8 safe base64 encoding
+        const jsonStr = JSON.stringify(payload);
+        const content = utf8ToBase64(jsonStr);
 
         // Step 2: commit
         wx.request({
@@ -182,3 +181,18 @@ Page({
     });
   }
 });
+
+// UTF-8 safe base64 encoder (no TextEncoder needed)
+function utf8ToBase64(str) {
+  var encoded = encodeURIComponent(str);
+  var binary = '';
+  for (var i = 0; i < encoded.length; i++) {
+    if (encoded[i] === '%') {
+      binary += String.fromCharCode(parseInt(encoded.substr(i + 1, 2), 16));
+      i += 2;
+    } else {
+      binary += encoded[i];
+    }
+  }
+  return btoa(binary);
+}
