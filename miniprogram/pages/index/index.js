@@ -1,5 +1,4 @@
 const { CAT_ORDER, dishImgUrl } = require('../../utils/dishes');
-const { sendPush } = require('../../utils/wxpusher');
 const app = getApp();
 
 const FB_BG = {
@@ -82,31 +81,36 @@ Page({
     const total = entries.reduce((s, [, v]) => s + v.qty, 0);
     const that = this;
 
+    // Build summary text
+    let text = '🍳 点菜清单\n━━━━━━━━━━━━━\n';
+    if (tonight.length > 0) {
+      text += '\n🍽️ 今晚吃：\n';
+      tonight.forEach(([n, v]) => { text += '  ' + n + ' ×' + v.qty + '\n'; });
+    }
+    if (tomorrow.length > 0) {
+      text += '\n🍱 明午带饭：\n';
+      tomorrow.forEach(([n, v]) => { text += '  ' + n + ' ×' + v.qty + '\n'; });
+    }
+    text += '\n━━━━━━━━━━━━━\n共 ' + total + ' 道菜 · 二人食';
+
     wx.showActionSheet({
-      itemList: ['📨 完成并推送', '📋 复制清单', '🗑 清空购物车'],
+      itemList: ['✅ 完成（显示清单）', '📋 复制到剪贴板', '🗑 清空购物车'],
       success(res) {
         if (res.tapIndex === 0) {
-          wx.showLoading({ title: '推送中...', mask: true });
-          sendPush(cart, function(result) {
-            wx.hideLoading();
-            if (result.ok) {
+          wx.showModal({
+            title: '点菜清单',
+            content: text,
+            confirmText: '复制',
+            success(r) {
+              if (r.confirm) {
+                wx.setClipboardData({ data: text, success: () => wx.showToast({ title: '已复制', icon: 'success' }) });
+              }
               app.globalData.cart = {};
               app.saveCart();
               that.refresh();
-              wx.showToast({ title: '已推送', icon: 'success' });
-            } else {
-              wx.showModal({
-                title: '推送失败',
-                content: result.msg + '\n\n请检查：\n① 开发者工具→详情→本地设置→不校验域名\n② 小程序后台已添加wxpusher域名',
-                showCancel: false
-              });
             }
           });
         } else if (res.tapIndex === 1) {
-          let text = '🍳 点菜清单\n';
-          if (tonight.length > 0) { text += '\n🍽️今晚：\n'; tonight.forEach(([n, v]) => { text += n + ' ×' + v.qty + '\n'; }); }
-          if (tomorrow.length > 0) { text += '\n🍱明午：\n'; tomorrow.forEach(([n, v]) => { text += n + ' ×' + v.qty + '\n'; }); }
-          text += '\n共 ' + total + ' 道菜';
           wx.setClipboardData({ data: text, success: () => wx.showToast({ title: '已复制', icon: 'success' }) });
         } else if (res.tapIndex === 2) {
           wx.showModal({
