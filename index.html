@@ -212,6 +212,8 @@ body{
   background:#fff;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap
 }
 .btn-copy:active{background:var(--primary-bg, #FFF4EC)}
+.btn-send{padding:10px 14px;border-radius:24px;border:none;background:#07C160;color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-send:active{background:#06AD56}
 .drawer-empty{text-align:center;padding:40px 0;color:var(--text3);font-size:14px}
 
 /* ====== Blind Box ====== */
@@ -516,7 +518,7 @@ body{
   <div class="drawer-body" id="drawerBody"></div>
   <div class="drawer-footer" id="drawerFooter">
     <div class="drawer-total"><span id="drawerTotal"></span></div>
-    <div class="drawer-actions"><button class="btn-copy" onclick="copyOrder()">📋 复制清单</button><button class="btn-done" onclick="closeCartDrawer()">完成</button></div>
+    <div class="drawer-actions"><button class="btn-copy" onclick="copyOrder()">📋 复制</button><button class="btn-send" onclick="sendToWechat()">📨 推送</button><button class="btn-done" onclick="closeCartDrawer()">完成</button></div>
   </div>
 </div>
 
@@ -921,6 +923,38 @@ function fallbackCopy(text){
   document.body.appendChild(ta); ta.select();
   document.execCommand('copy'); document.body.removeChild(ta);
   toast('✅ 已复制，去微信粘贴吧！');
+}
+
+const PUSHPLUS_TOKEN = ''; // 待填入
+
+async function sendToWechat(){
+  if(!PUSHPLUS_TOKEN){ toast('⚠️ 推送Token未配置'); return; }
+  const entries = getCartEntries();
+  if(entries.length===0){ toast('购物车是空的'); return; }
+  const tonight = entries.filter(([,v])=>v.portion==='tonight');
+  const tomorrow = entries.filter(([,v])=>v.portion==='tomorrow');
+  let content = '<h3>🍳 点菜清单</h3>';
+  if(tonight.length>0){
+    content += '<p><b>🍽️ 今晚吃：</b><br>'+tonight.map(([n,v])=>n+' ×'+v.qty).join('<br>')+'</p>';
+  }
+  if(tomorrow.length>0){
+    content += '<p><b>🍱 明午带饭：</b><br>'+tomorrow.map(([n,v])=>n+' ×'+v.qty).join('<br>')+'</p>';
+  }
+  content += '<hr><b>共 '+getCartTotal()+' 道菜 · 二人食</b>';
+
+  toast('📨 正在推送...');
+  try{
+    const resp = await fetch('https://www.pushplus.plus/send',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({token:PUSHPLUS_TOKEN, title:'🍳 点菜清单 · 二人食', content:content, template:'html'})
+    });
+    const data = await resp.json();
+    if(data.code===200) toast('✅ 已推送到微信！');
+    else toast('❌ 推送失败: '+data.msg);
+  }catch(e){
+    console.error(e); toast('❌ 推送失败，请重试');
+  }
 }
 
 // ==================== BLIND BOX ====================
