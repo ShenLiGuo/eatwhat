@@ -182,17 +182,18 @@ Page({
   }
 });
 
-// UTF-8 safe base64 encoder (no TextEncoder needed)
+// Mini program compatible base64 (no btoa/TextEncoder)
 function utf8ToBase64(str) {
-  var encoded = encodeURIComponent(str);
-  var binary = '';
-  for (var i = 0; i < encoded.length; i++) {
-    if (encoded[i] === '%') {
-      binary += String.fromCharCode(parseInt(encoded.substr(i + 1, 2), 16));
-      i += 2;
+  var bytes = [];
+  for (var i = 0; i < str.length; i++) {
+    var code = str.charCodeAt(i);
+    if (code < 0x80) {
+      bytes.push(code);
+    } else if (code < 0x800) {
+      bytes.push(0xc0 | (code >> 6), 0x80 | (code & 0x3f));
     } else {
-      binary += encoded[i];
+      bytes.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
     }
   }
-  return btoa(binary);
+  return wx.arrayBufferToBase64(new Uint8Array(bytes).buffer);
 }
