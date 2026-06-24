@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>今天吃啥 · 二人食</title>
+<style>
+/* ====== Reset ====== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#E8590C;--primary-dark:#D9480F;--primary-light:#FF8C42;
+  --bg:#F8F8F8;--card:#fff;--text:#1a1a1a;--text2:#888;--text3:#bbb;
+  --border:#F0F0F0;--divider:#F5F5F5;
+  --red:#F03E3E;--green:#40C057;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 1px 4px rgba(0,0,0,.04);--shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --safe-b:env(safe-area-inset-bottom,12px);
+  --cart-h:56px;
+  --meat-grad:linear-gradient(135deg,#FFF0E6,#FFDFC9);
+  --veg-grad:linear-gradient(135deg,#E8F5E9,#CDE8D0);
+  --seafood-grad:linear-gradient(135deg,#E3F2FD,#C5E3FC);
+  --cold-grad:linear-gradient(135deg,#FFFDE7,#FFF9C4);
+  --soup-grad:linear-gradient(135deg,#FFF3E0,#FFE4C4);
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--text);min-height:100dvh;
+  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;
+  user-select:none;overflow-x:hidden;
+}
+.app{max-width:480px;margin:0 auto;display:flex;flex-direction:column;min-height:100dvh;position:relative}
+
+/* ====== Header ====== */
+.header{
+  position:sticky;top:0;z-index:90;
+  background:linear-gradient(135deg,#E8590C,#D9480F);color:#fff;
+  padding:14px 16px;box-shadow:0 2px 16px rgba(233,89,12,.2);
+}
+.header-top{display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:19px;font-weight:700;letter-spacing:.3px}
+.header-sub{font-size:12px;opacity:.85;margin-top:2px;display:flex;align-items:center;gap:4px}
+.header-sub .dot{width:5px;height:5px;border-radius:50%;background:#fff;opacity:.6}
+.header-badge{
+  background:rgba(255,255,255,.22);padding:5px 12px;border-radius:20px;
+  font-size:13px;font-weight:600;transition:all .2s;cursor:pointer
+}
+.header-badge:active{background:rgba(255,255,255,.35)}
+
+/* ====== Main ====== */
+.main{flex:1;padding-bottom:calc(var(--cart-h) + var(--safe-b) + 80px)}
+
+/* ====== Page ====== */
+.page{display:none;animation:fadeUp .25s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ====== Search ====== */
+.search-bar{position:sticky;top:80px;z-index:50;padding:10px 14px;background:var(--bg)}
+.search-wrap{position:relative}
+.search-wrap input{
+  width:100%;padding:10px 14px 10px 38px;border:1.5px solid #eee;border-radius:24px;
+  font-size:14px;background:var(--card);outline:none;transition:border .2s;color:var(--text)
+}
+.search-wrap input:focus{border-color:var(--primary-light)}
+.search-wrap .s-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:#ccc}
+.search-wrap .s-clear{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px;color:#ccc;
+  border:none;background:none;cursor:pointer;display:none;padding:4px
+}
+
+/* ====== Category Tabs ====== */
+.cat-tabs{
+  display:flex;gap:8px;padding:6px 14px 12px;overflow-x:auto;scroll-behavior:smooth;
+  -ms-overflow-style:none;scrollbar-width:none;
+}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{
+  flex-shrink:0;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:500;
+  background:var(--card);color:var(--text2);border:1.5px solid var(--border);
+  cursor:pointer;transition:all .2s;white-space:nowrap
+}
+.cat-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
+.cat-tab:active{transform:scale(.95)}
+
+/* ====== Filter Row ====== */
+.filter-row{display:flex;align-items:center;gap:8px;padding:0 14px 10px}
+.filter-chip{
+  font-size:11px;padding:4px 10px;border-radius:14px;border:1px solid var(--border);
+  background:var(--card);color:var(--text2);cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;gap:3px
+}
+.filter-chip.active{background:#FFF4EC;border-color:var(--primary-light);color:var(--primary);font-weight:600}
+.filter-chip:active{transform:scale(.95)}
+
+/* ====== Dish Card List ====== */
+.dish-list{padding:0 14px}
+.dish-card{
+  display:flex;gap:12px;background:var(--card);border-radius:var(--radius);
+  margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow);
+  transition:all .15s;cursor:pointer;position:relative
+}
+.dish-card:active{transform:scale(.985);background:#fefefe}
+.dish-img{
+  width:100px;min-height:100px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:44px;position:relative;overflow:hidden
+}
+.dish-img .emoji-bg{font-size:52px;opacity:.75;transition:transform .3s}
+.dish-img::after{
+  content:'';position:absolute;bottom:0;right:0;width:50px;height:50px;
+  background:inherit;border-radius:50% 0 0 0;transform:translate(30%,30%)
+}
+.dish-info{flex:1;padding:12px 12px 12px 0;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.dish-name{font-size:15px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.dish-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.dish-tag{
+  font-size:10px;padding:2px 7px;border-radius:10px;background:#F5F5F5;color:var(--text2);
+  white-space:nowrap
+}
+.dish-tag.cuisine-sichuan{background:#FFF0E6;color:#D9480F}
+.dish-tag.cuisine-canton{background:#E3F2FD;color:#1565C0}
+.dish-tag.reheat{background:#E8F5E9;color:#2E7D32}
+.dish-tag.noreheat{background:#FFF3E0;color:#E65100}
+.dish-foot{display:flex;align-items:center;justify-content:space-between}
+.dish-reheat{font-size:11px;display:flex;align-items:center;gap:2px}
+.qty-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.qty-ctrl button{
+  width:28px;height:28px;border-radius:50%;border:none;font-size:16px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;line-height:1
+}
+.btn-minus{background:#F0F0F0;color:#888}
+.btn-plus{background:var(--primary);color:#fff}
+.qty-ctrl button:active{transform:scale(.85)}
+.qty-ctrl .qty-num{font-size:14px;font-weight:700;color:var(--primary);min-width:16px;text-align:center}
+
+/* ====== Cart Bar (bottom float) ====== */
+.cart-bar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;
+  background:var(--card);border-top:1px solid var(--border);z-index:100;
+  box-shadow:0 -2px 12px rgba(0,0,0,.06);
+}
+.cart-bar-inner{
+  display:flex;align-items:center;padding:8px 14px;gap:12px;cursor:pointer;
+}
+.cart-bar:active .cart-bar-inner{background:#fafafa}
+.cart-icon-wrap{position:relative;flex-shrink:0}
+.cart-icon{
+  width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#333,#555);
+  display:flex;align-items:center;justify-content:center;font-size:20px
+}
+.cart-icon.has-items{background:linear-gradient(135deg,var(--primary),var(--primary-dark))}
+.cart-badge{
+  position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;
+  font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;padding:0 4px
+}
+.cart-info{flex:1}
+.cart-title{font-size:14px;font-weight:600}
+.cart-hint{font-size:11px;color:var(--text2)}
+.cart-arrow{font-size:16px;color:var(--text3)}
+
+/* ====== Cart Drawer ====== */
+.drawer-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:150;display:none;
+  animation:fadeIn .2s
+}
+@keyframes fadeIn{from{opacity:0}}
+.drawer-overlay.show{display:block}
+.drawer{
+  position:fixed;left:50%;transform:translateX(-50%) translateY(100%);max-width:480px;width:100%;
+  bottom:0;z-index:151;background:var(--card);border-radius:20px 20px 0 0;
+  max-height:65vh;display:flex;flex-direction:column;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -4px 24px rgba(0,0,0,.12)
+}
+.drawer.open{transform:translateX(-50%) translateY(0)}
+.drawer-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px 12px;border-bottom:1px solid var(--divider)
+}
+.drawer-header h3{font-size:16px;font-weight:700}
+.btn-clear{font-size:12px;color:var(--text2);border:none;background:none;cursor:pointer;padding:4px 8px}
+.btn-clear:active{color:var(--red)}
+.drawer-body{flex:1;overflow-y:auto;padding:8px 18px}
+.drawer-item{
+  display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--divider)
+}
+.drawer-item:last-child{border-bottom:none}
+.drawer-item .di-name{flex:1;font-size:14px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drawer-item .di-qty{display:flex;align-items:center;gap:5px}
+.drawer-item .di-qty button{width:24px;height:24px;font-size:13px}
+.drawer-item .di-qty span{font-size:14px;font-weight:700;min-width:16px;text-align:center;color:var(--primary)}
+.drawer-item .di-portion{
+  font-size:11px;padding:3px 8px;border-radius:10px;cursor:pointer;transition:all .15s;
+  border:1px solid var(--border);background:var(--card);color:var(--text2);white-space:nowrap
+}
+.drawer-item .di-portion.eat-tonight{background:#FFF4EC;color:#D9480F;border-color:#FFD4BA}
+.drawer-item .di-portion.pack-tomorrow{background:#E8F5E9;color:#2E7D32;border-color:#B9DFC4}
+.drawer-footer{
+  padding:14px 18px calc(var(--safe-b) + 8px);border-top:1px solid var(--divider);
+  display:flex;align-items:center;justify-content:space-between
+}
+.drawer-total{font-size:15px;font-weight:700}
+.drawer-total span{font-size:12px;color:var(--text2);font-weight:400}
+.btn-done{
+  padding:10px 28px;border-radius:24px;border:none;background:var(--primary);
+  color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s
+}
+.btn-done:active{background:var(--primary-dark);transform:scale(.95)}
+.drawer-empty{text-align:center;padding:40px 0;color:var(--text3);font-size:14px}
+
+/* ====== Blind Box ====== */
+.bb-section{padding:16px}
+.bb-hero{text-align:center;margin-bottom:20px}
+.bb-hero .bb-icon{font-size:64px;display:block;margin-bottom:4px;transition:transform .5s}
+.bb-hero .bb-icon.rolling{animation:shake .5s ease-in-out}
+@keyframes shake{
+  0%,100%{transform:rotate(0)}
+  20%{transform:rotate(-12deg)}
+  40%{transform:rotate(12deg)}
+  60%{transform:rotate(-8deg)}
+  80%{transform:rotate(8deg)}
+}
+.bb-hero h3{font-size:18px;font-weight:700;margin:4px 0}
+.bb-hero p{font-size:13px;color:var(--text2)}
+
+/* Flavor Chips */
+.flavor-label{font-size:14px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:4px}
+.flavor-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.flavor-chip{
+  padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;
+  border:1.5px solid var(--border);background:var(--card);cursor:pointer;
+  transition:all .2s;display:flex;align-items:center;gap:4px
+}
+.flavor-chip.active{
+  background:#FFF4EC;border-color:var(--primary);color:var(--primary);font-weight:600;
+  box-shadow:0 2px 8px rgba(233,89,12,.12)
+}
+.flavor-chip:active{transform:scale(.95)}
+
+/* Count Picker */
+.bb-controls{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px}
+.bb-controls button{
+  width:38px;height:38px;border-radius:50%;border:2px solid var(--border);
+  background:var(--card);font-size:18px;cursor:pointer;font-weight:700;transition:all .15s
+}
+.bb-controls button:active{background:#FFF4EC;border-color:var(--primary-light)}
+.bb-count{font-size:30px;font-weight:800;color:var(--primary);min-width:32px;text-align:center}
+.bb-label{font-size:14px;color:var(--text2)}
+
+.btn-roll{
+  display:block;margin:0 auto;padding:14px 56px;border-radius:50px;border:none;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;font-size:18px;font-weight:700;cursor:pointer;
+  box-shadow:0 6px 20px rgba(233,89,12,.3);transition:all .15s;letter-spacing:2px
+}
+.btn-roll:active{transform:scale(.94);box-shadow:0 3px 10px rgba(233,89,12,.2)}
+.btn-roll:disabled{opacity:.5;pointer-events:none}
+
+/* BB Result */
+.bb-result{margin-top:20px;text-align:center}
+.bb-result h4{font-size:15px;font-weight:700;margin-bottom:12px}
+.bb-result-dishes{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:14px}
+.bb-res-dish{
+  background:var(--card);border:2px solid var(--primary-light);border-radius:var(--radius-sm);
+  padding:10px 16px;font-size:14px;font-weight:600;color:var(--primary);
+  animation:popIn .3s ease forwards;opacity:0
+}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.btn-add-bb{
+  padding:10px 24px;border-radius:24px;border:2px solid var(--primary);
+  background:#fff;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s
+}
+.btn-add-bb:active{background:var(--primary-bg, #FFF4EC)}
+
+/* ====== Admin ====== */
+.admin-lock{text-align:center;padding:48px 24px}
+.admin-lock .lock-icon{font-size:52px;display:block;margin-bottom:12px}
+.admin-lock input{
+  width:100%;max-width:260px;padding:12px 16px;border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);font-size:15px;text-align:center;outline:none;margin-bottom:12px
+}
+.admin-lock input:focus{border-color:var(--primary-light)}
+.lock-error{color:var(--red);font-size:13px;display:none;margin-top:6px}
+.btn-unlock{
+  display:block;width:100%;max-width:260px;margin:0 auto;padding:12px;border:none;
+  border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-size:15px;font-weight:600;cursor:pointer
+}
+.btn-unlock:active{opacity:.85}
+
+.admin-panel{display:none;padding:14px}
+.admin-panel.show{display:block}
+.admin-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.admin-top h3{font-size:16px;font-weight:700}
+.btn-logout{font-size:13px;color:var(--text2);background:none;border:none;cursor:pointer;padding:4px 8px}
+
+.add-form{display:flex;gap:8px;margin-bottom:14px}
+.add-form input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:22px;font-size:14px;outline:none}
+.add-form input:focus{border-color:var(--primary-light)}
+.add-form button{padding:10px 18px;border:none;border-radius:22px;background:var(--primary);color:#fff;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.add-form button:active{opacity:.85}
+
+.admin-stats{display:flex;gap:8px;margin-bottom:14px}
+.admin-stat{flex:1;text-align:center;padding:10px 6px;background:var(--card);border-radius:var(--radius-sm);box-shadow:var(--shadow)}
+.admin-stat .as-num{font-size:22px;font-weight:800;color:var(--primary)}
+.admin-stat .as-label{font-size:11px;color:var(--text2)}
+
+.admin-dish-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto}
+.admin-dish-item{
+  display:flex;align-items:center;gap:8px;background:var(--card);padding:10px 12px;
+  border-radius:var(--radius-sm);font-size:14px
+}
+.admin-dish-item .ad-name{flex:1;font-weight:500}
+.admin-dish-item .ad-badge{
+  font-size:10px;padding:2px 8px;border-radius:10px;white-space:nowrap
+}
+.ad-badge.default{background:#F5F5F5;color:var(--text3)}
+.ad-badge.custom{background:#FFF4EC;color:var(--primary)}
+.btn-del{
+  width:26px;height:26px;border-radius:50%;border:none;background:#FEE;color:var(--red);
+  font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center
+}
+.btn-del:active{background:#FDD}
+
+.btn-reset{
+  margin-top:16px;width:100%;padding:12px;border:1.5px dashed #ddd;border-radius:var(--radius-sm);
+  background:transparent;color:var(--text2);font-size:13px;cursor:pointer
+}
+.btn-reset:active{border-color:var(--red);color:var(--red);background:#FFF5F5}
+
+/* ====== Tab Bar ====== */
+.tab-bar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;
+  background:var(--card);border-top:1px solid var(--border);z-index:99;
+  display:flex;padding-bottom:var(--safe-b);box-shadow:0 -2px 12px rgba(0,0,0,.04)
+}
+.tab-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;height:50px;cursor:pointer;color:var(--text3);transition:all .2s;font-size:10px;font-weight:500
+}
+.tab-item .ti{font-size:20px;transition:transform .2s}
+.tab-item.active{color:var(--primary)}
+.tab-item.active .ti{transform:scale(1.08)}
+
+/* ====== Toast ====== */
+.toast{
+  position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:300;
+  background:#333;color:#fff;padding:10px 22px;border-radius:20px;font-size:13px;
+  opacity:0;pointer-events:none;transition:opacity .25s
+}
+.toast.show{opacity:1}
+
+/* ====== Confirm Dialog ====== */
+.d-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:250;display:none;
+  align-items:center;justify-content:center
+}
+.d-overlay.show{display:flex}
+.d-box{background:#fff;border-radius:16px;padding:24px;width:280px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.d-box p{font-size:15px;line-height:1.6;margin-bottom:20px}
+.d-box .d-btns{display:flex;gap:10px}
+.d-box .d-btns button{flex:1;padding:10px;border-radius:24px;border:none;font-size:14px;font-weight:600;cursor:pointer}
+.d-btn-cancel{background:#F0F0F0;color:#555}
+.d-btn-ok{background:var(--red);color:#fff}
+.d-box .d-btns button:active{opacity:.8}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <h1>🍳 今天吃啥</h1>
+      <span class="header-badge" id="cartBadge" onclick="toggleCartDrawer()">🛒 0道菜</span>
+    </div>
+    <div class="header-sub">🌙 晚餐<span class="dot"></span>👫 二人食<span class="dot"></span>🍱 明午带饭</div>
+  </div>
+
+  <div class="main">
+    <!-- ===== PAGE: ORDER ===== -->
+    <div class="page active" id="page-order">
+      <div class="search-bar">
+        <div class="search-wrap">
+          <span class="s-icon">🔍</span>
+          <input id="searchInput" placeholder="搜菜品..." autocomplete="off">
+          <button class="s-clear" id="searchClear" onclick="clearSearch()">✕</button>
+        </div>
+      </div>
+
+      <div class="cat-tabs" id="catTabs"></div>
+      <div class="filter-row">
+        <span style="font-size:12px;color:var(--text2);flex-shrink:0">筛选:</span>
+        <span class="filter-chip active" data-filter="all" onclick="setFilter('all')">全部</span>
+        <span class="filter-chip" data-filter="reheat" onclick="setFilter('reheat')">🍱 适合带饭</span>
+        <span class="filter-chip" data-filter="sichuan" onclick="setFilter('sichuan')">🌶️ 川菜</span>
+        <span class="filter-chip" data-filter="canton" onclick="setFilter('canton')">🦐 粤菜</span>
+      </div>
+
+      <div class="dish-list" id="dishList"></div>
+    </div>
+
+    <!-- ===== PAGE: BLIND BOX ===== -->
+    <div class="page" id="page-blindbox">
+      <div class="bb-section">
+        <div class="bb-hero">
+          <span class="bb-icon" id="bbIcon">🎁</span>
+          <h3>随机点菜盲盒</h3>
+          <p>不知道吃什么？选好口味，交给命运！</p>
+        </div>
+
+        <div class="flavor-label">🎯 口味偏好 <span style="font-size:11px;color:var(--text2);font-weight:400">（可多选，不选=全部）</span></div>
+        <div class="flavor-grid" id="flavorGrid"></div>
+
+        <div class="bb-controls">
+          <span class="bb-label">抽</span>
+          <button onclick="changeBBQty(-1)">−</button>
+          <span class="bb-count" id="bbCount">2</span>
+          <button onclick="changeBBQty(1)">+</button>
+          <span class="bb-label">道菜</span>
+        </div>
+
+        <button class="btn-roll" id="btnRoll" onclick="rollBB()">🎰 开 盲 盒</button>
+
+        <div class="bb-result" id="bbResult"></div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE: ADMIN ===== -->
+    <div class="page" id="page-admin">
+      <div class="admin-lock" id="adminLock">
+        <span class="lock-icon">🔐</span>
+        <p style="margin-bottom:14px;color:var(--text2);font-size:14px">管理员验证</p>
+        <input type="password" id="adminPw" placeholder="请输入管理密码" maxlength="20">
+        <button class="btn-unlock" onclick="adminLogin()">验证进入</button>
+        <div class="lock-error" id="lockError">密码错误</div>
+      </div>
+
+      <div class="admin-panel" id="adminPanel">
+        <div class="admin-top">
+          <h3>📝 菜单管理</h3>
+          <button class="btn-logout" onclick="adminLogout()">退出</button>
+        </div>
+        <div class="add-form">
+          <input id="newDishName" placeholder="菜品名称" maxlength="20">
+          <button onclick="addDish()">➕ 添加</button>
+        </div>
+        <div class="admin-stats" id="adminStats"></div>
+        <div class="admin-dish-list" id="adminDishList"></div>
+        <button class="btn-reset" onclick="resetDishes()">🔄 恢复默认50道菜</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Bar -->
+  <div class="cart-bar" id="cartBar" onclick="toggleCartDrawer()">
+    <div class="cart-bar-inner">
+      <div class="cart-icon-wrap">
+        <div class="cart-icon" id="cartIcon">🛒</div>
+        <div class="cart-badge" id="cartDot" style="display:none">0</div>
+      </div>
+      <div class="cart-info">
+        <div class="cart-title" id="cartTitle">购物车是空的</div>
+        <div class="cart-hint" id="cartHint">挑选今晚和明天的菜吧</div>
+      </div>
+      <span class="cart-arrow">▸</span>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active" data-page="order" onclick="switchTab('order')">
+      <span class="ti">📋</span>点菜
+    </div>
+    <div class="tab-item" data-page="blindbox" onclick="switchTab('blindbox')">
+      <span class="ti">🎲</span>盲盒
+    </div>
+    <div class="tab-item" data-page="admin" onclick="switchTab('admin')">
+      <span class="ti">⚙️</span>管理
+    </div>
+  </div>
+</div>
+
+<!-- Cart Drawer -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeCartDrawer()"></div>
+<div class="drawer" id="cartDrawer">
+  <div class="drawer-header">
+    <h3>🛒 已选菜品</h3>
+    <button class="btn-clear" onclick="clearCart()">🗑 清空</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-footer" id="drawerFooter">
+    <div class="drawer-total"><span id="drawerTotal"></span></div>
+    <button class="btn-done" onclick="closeCartDrawer()">完成</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Confirm Dialog -->
+<div class="d-overlay" id="dOverlay">
+  <div class="d-box">
+    <p id="dMsg"></p>
+    <div class="d-btns">
+      <button class="d-btn-cancel" onclick="closeDialog()">取消</button>
+      <button class="d-btn-ok" id="dOk">确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const DEFAULT_DISHES = [
+  // 川菜荤菜 20
+  {n:'回锅肉',c:'荤菜',cs:'川菜',f:['香辣','酱香'],r:true,e:'🥩'},
+  {n:'水煮肉片',c:'荤菜',cs:'川菜',f:['麻辣'],r:true,e:'🥩'},
+  {n:'麻婆豆腐',c:'荤菜',cs:'川菜',f:['麻辣'],r:true,e:'🫘'},
+  {n:'宫保鸡丁',c:'荤菜',cs:'川菜',f:['香辣','酸甜'],r:true,e:'🍗'},
+  {n:'鱼香肉丝',c:'荤菜',cs:'川菜',f:['酸甜','酱香'],r:true,e:'🥩'},
+  {n:'辣子鸡',c:'荤菜',cs:'川菜',f:['麻辣','香辣'],r:true,e:'🍗'},
+  {n:'夫妻肺片',c:'荤菜',cs:'川菜',f:['麻辣'],r:false,e:'🥓'},
+  {n:'水煮牛肉',c:'荤菜',cs:'川菜',f:['麻辣'],r:true,e:'🥩'},
+  {n:'蒜泥白肉',c:'荤菜',cs:'川菜',f:['蒜香','酱香'],r:false,e:'🥩'},
+  {n:'口水鸡',c:'荤菜',cs:'川菜',f:['麻辣','香辣'],r:false,e:'🍗'},
+  {n:'毛血旺',c:'荤菜',cs:'川菜',f:['麻辣'],r:true,e:'🥘'},
+  {n:'酸菜鱼',c:'荤菜',cs:'川菜',f:['酸辣'],r:true,e:'🐟'},
+  {n:'糖醋里脊',c:'荤菜',cs:'川菜',f:['酸甜'],r:false,e:'🍖'},
+  {n:'可乐鸡翅',c:'荤菜',cs:'川菜',f:['酱香','酸甜'],r:true,e:'🍗'},
+  {n:'鱼香茄子',c:'荤菜',cs:'川菜',f:['酸甜','酱香'],r:true,e:'🍆'},
+  {n:'干锅花菜',c:'荤菜',cs:'川菜',f:['香辣'],r:true,e:'🥦'},
+  {n:'干锅排骨',c:'荤菜',cs:'川菜',f:['麻辣','香辣'],r:true,e:'🍖'},
+  {n:'泡椒牛肉',c:'荤菜',cs:'川菜',f:['酸辣'],r:true,e:'🥩'},
+  {n:'东坡肉',c:'荤菜',cs:'川菜',f:['酱香'],r:true,e:'🥩'},
+  {n:'干煸肥肠',c:'荤菜',cs:'川菜',f:['香辣'],r:true,e:'🥓'},
+  // 川菜素菜 12
+  {n:'虎皮青椒',c:'素菜',cs:'川菜',f:['酱香','酸甜'],r:true,e:'🫑'},
+  {n:'酸辣土豆丝',c:'素菜',cs:'川菜',f:['酸辣'],r:false,e:'🥔'},
+  {n:'炝炒莲白',c:'素菜',cs:'川菜',f:['蒜香','清淡'],r:false,e:'🥬'},
+  {n:'干煸豆角',c:'素菜',cs:'川菜',f:['香辣'],r:true,e:'🫘'},
+  {n:'蒜蓉西兰花',c:'素菜',cs:'川菜',f:['蒜香','清淡'],r:false,e:'🥦'},
+  {n:'蚝油生菜',c:'素菜',cs:'川菜',f:['清淡','酱香'],r:false,e:'🥬'},
+  {n:'干煸四季豆',c:'素菜',cs:'川菜',f:['香辣'],r:true,e:'🫘'},
+  {n:'清炒时蔬',c:'素菜',cs:'川菜',f:['清淡'],r:false,e:'🥬'},
+  {n:'家常豆腐',c:'素菜',cs:'川菜',f:['酱香','香辣'],r:true,e:'🫘'},
+  {n:'醋溜白菜',c:'素菜',cs:'川菜',f:['酸甜'],r:false,e:'🥬'},
+  {n:'肉末茄子',c:'素菜',cs:'川菜',f:['酱香'],r:true,e:'🍆'},
+  {n:'孜然土豆',c:'素菜',cs:'川菜',f:['孜然','香辣'],r:true,e:'🥔'},
+  // 川菜凉菜 3
+  {n:'凉拌黄瓜',c:'凉菜',cs:'川菜',f:['蒜香','清淡'],r:false,e:'🥒'},
+  {n:'皮蛋豆腐',c:'凉菜',cs:'川菜',f:['清淡','酱香'],r:false,e:'🥚'},
+  {n:'红油耳片',c:'凉菜',cs:'川菜',f:['麻辣','香辣'],r:false,e:'🥓'},
+  // 川菜汤煲 5
+  {n:'番茄牛腩煲',c:'汤煲',cs:'川菜',f:['酸甜','酱香'],r:true,e:'🍲'},
+  {n:'冬瓜排骨汤',c:'汤煲',cs:'川菜',f:['清淡'],r:true,e:'🍲'},
+  {n:'酸萝卜老鸭汤',c:'汤煲',cs:'川菜',f:['酸辣','清淡'],r:true,e:'🍲'},
+  {n:'紫菜蛋花汤',c:'汤煲',cs:'川菜',f:['清淡'],r:false,e:'🍲'},
+  {n:'酸辣汤',c:'汤煲',cs:'川菜',f:['酸辣'],r:true,e:'🍲'},
+  // 粤菜海鲜 10
+  {n:'清蒸鲈鱼',c:'海鲜',cs:'粤菜',f:['清淡','蒜香'],r:false,e:'🐟'},
+  {n:'白灼虾',c:'海鲜',cs:'粤菜',f:['清淡'],r:false,e:'🦐'},
+  {n:'蒜蓉粉丝蒸扇贝',c:'海鲜',cs:'粤菜',f:['蒜香','清淡'],r:false,e:'🦪'},
+  {n:'姜葱炒花蟹',c:'海鲜',cs:'粤菜',f:['清淡','蒜香'],r:false,e:'🦀'},
+  {n:'豉汁蒸排骨',c:'海鲜',cs:'粤菜',f:['酱香','蒜香'],r:true,e:'🍖'},
+  {n:'白切鸡',c:'海鲜',cs:'粤菜',f:['清淡'],r:false,e:'🍗'},
+  {n:'清蒸多宝鱼',c:'海鲜',cs:'粤菜',f:['清淡','蒜香'],r:false,e:'🐟'},
+  {n:'蒜蓉粉丝蒸虾',c:'海鲜',cs:'粤菜',f:['蒜香','清淡'],r:false,e:'🦐'},
+  {n:'豉椒炒蛤蜊',c:'海鲜',cs:'粤菜',f:['香辣','蒜香'],r:false,e:'🦪'},
+  {n:'蚝油牛肉',c:'海鲜',cs:'粤菜',f:['酱香'],r:true,e:'🥩'},
+];
+
+// Gradients per category
+const CAT_GRADS = {
+  '荤菜':'linear-gradient(135deg,#FFF0E6,#FFDFC9)',
+  '素菜':'linear-gradient(135deg,#E8F5E9,#CDE8D0)',
+  '海鲜':'linear-gradient(135deg,#E3F2FD,#C5E3FC)',
+  '凉菜':'linear-gradient(135deg,#FFFDE7,#FFF9C4)',
+  '汤煲':'linear-gradient(135deg,#FFF3E0,#FFE4C4)',
+};
+const CAT_ORDER = ['荤菜','素菜','海鲜','凉菜','汤煲'];
+
+const FLAVORS = [
+  {k:'麻辣',e:'🌶️'},{k:'香辣',e:'🌶️'},{k:'酸辣',e:'🍋'},
+  {k:'蒜香',e:'🧄'},{k:'酱香',e:'🍯'},{k:'酸甜',e:'🍬'},
+  {k:'清淡',e:'🥬'},{k:'孜然',e:'✨'},
+];
+
+const STORAGE_DISHES = 'ew2_dishes';
+const STORAGE_CART = 'ew2_cart';
+const ADMIN_PW = 'admin123';
+
+// ==================== STATE ====================
+let dishes = [];
+let cart = {};       // { dishName: { qty: number, portion: 'tonight'|'tomorrow' } }
+let activeCat = '全部';  // current category filter
+let activeFilter = 'all'; // all | reheat | sichuan | canton
+let bbQty = 2;
+let bbResult = [];
+let isAdmin = false;
+let dialogCb = null;
+
+// ==================== INIT ====================
+function loadDishes(){
+  const s = localStorage.getItem(STORAGE_DISHES);
+  if(s){ try{ dishes = JSON.parse(s); }catch(e){ dishes = cloneDefaults(); } }
+  else dishes = cloneDefaults();
+  if(!Array.isArray(dishes) || dishes.length===0) dishes = cloneDefaults();
+}
+function cloneDefaults(){ return DEFAULT_DISHES.map(d=>({...d})); }
+function saveDishes(){ localStorage.setItem(STORAGE_DISHES, JSON.stringify(dishes)); }
+
+function loadCart(){
+  const s = localStorage.getItem(STORAGE_CART);
+  if(s){ try{ cart = JSON.parse(s); }catch(e){ cart = {}; } }
+}
+function saveCart(){ localStorage.setItem(STORAGE_CART, JSON.stringify(cart)); }
+
+loadDishes(); loadCart();
+
+// ==================== TAB ====================
+function switchTab(tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.querySelector('.tab-item[data-page="'+tab+'"]').classList.add('active');
+  if(tab==='order') renderOrder();
+  if(tab==='blindbox') renderBB();
+  if(tab==='admin') renderAdmin();
+}
+
+// ==================== ORDER PAGE ====================
+function getFilteredDishes(){
+  let list = [...dishes];
+  const search = document.getElementById('searchInput').value.trim().toLowerCase();
+  if(search){ list = list.filter(d=>d.n.toLowerCase().includes(search)); }
+  if(activeCat!=='全部'){ list = list.filter(d=>d.c===activeCat); }
+  if(activeFilter==='reheat'){ list = list.filter(d=>d.r); }
+  if(activeFilter==='sichuan'){ list = list.filter(d=>d.cs==='川菜'); }
+  if(activeFilter==='canton'){ list = list.filter(d=>d.cs==='粤菜'); }
+  return list;
+}
+
+function renderCatTabs(){
+  const cats = ['全部',...CAT_ORDER];
+  document.getElementById('catTabs').innerHTML = cats.map(c=>
+    `<span class="cat-tab${activeCat===c?' active':''}" onclick="setCat('${c}')">${c}</span>`
+  ).join('');
+}
+function setCat(cat){ activeCat=cat; renderCatTabs(); renderDishList(); }
+function setFilter(f){
+  activeFilter=f;
+  document.querySelectorAll('.filter-chip').forEach(el=>el.classList.remove('active'));
+  document.querySelector('.filter-chip[data-filter="'+f+'"]').classList.add('active');
+  renderDishList();
+}
+
+function renderOrder(){
+  renderCatTabs();
+  renderDishList();
+  updateAllCartUI();
+}
+
+function renderDishList(){
+  const list = getFilteredDishes();
+  const el = document.getElementById('dishList');
+  if(list.length===0){
+    el.innerHTML='<div style="text-align:center;padding:48px 0;color:var(--text3)"><div style="font-size:48px;margin-bottom:8px">🍽️</div>没有匹配的菜品</div>';
+    return;
+  }
+  el.innerHTML = list.map(d=>{
+    const qty = (cart[d.n]||{}).qty || 0;
+    const grad = CAT_GRADS[d.c] || CAT_GRADS['荤菜'];
+    const rTag = d.r ? '<span class="dish-tag reheat">🍱 适合带饭</span>' : '<span class="dish-tag noreheat">⏰ 现吃更佳</span>';
+    const csTag = d.cs==='川菜' ? '<span class="dish-tag cuisine-sichuan">川菜</span>' : '<span class="dish-tag cuisine-canton">粤菜</span>';
+    const fTags = d.f.slice(0,2).map(f=>`<span class="dish-tag">${f}</span>`).join('');
+    return `
+    <div class="dish-card">
+      <div class="dish-img" style="background:${grad}">
+        <span class="emoji-bg">${d.e}</span>
+      </div>
+      <div class="dish-info">
+        <div class="dish-name">${d.n}</div>
+        <div class="dish-tags">${csTag}${fTags}</div>
+        <div class="dish-foot">
+          <span class="dish-reheat">${rTag}</span>
+          <div class="qty-ctrl">
+            ${qty>0?`<button class="btn-minus" onclick="changeQty('${esc(d.n)}',-1)">−</button><span class="qty-num">${qty}</span>`:''}
+            <button class="btn-plus" onclick="changeQty('${esc(d.n)}',1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function changeQty(name, delta){
+  name = unesc(name);
+  if(!cart[name]) cart[name] = {qty:0, portion:'tonight'};
+  cart[name].qty += delta;
+  if(cart[name].qty <= 0){ delete cart[name]; }
+  saveCart();
+  renderDishList();
+  updateAllCartUI();
+}
+
+// ==================== CART ====================
+function getCartEntries(){ return Object.entries(cart).filter(([,v])=>v.qty>0); }
+function getCartTotal(){ return getCartEntries().reduce((s,[,v])=>s+v.qty,0); }
+
+function updateAllCartUI(){
+  const total = getCartTotal();
+  document.getElementById('cartBadge').textContent = total>0 ? `🛒 ${total}道菜` : '🛒 0道菜';
+  const icon = document.getElementById('cartIcon');
+  const dot = document.getElementById('cartDot');
+  if(total>0){
+    icon.classList.add('has-items');
+    dot.style.display='flex'; dot.textContent=total;
+    document.getElementById('cartTitle').textContent=`共 ${total} 道菜`;
+    document.getElementById('cartHint').textContent='点击查看菜单';
+  }else{
+    icon.classList.remove('has-items');
+    dot.style.display='none';
+    document.getElementById('cartTitle').textContent='购物车是空的';
+    document.getElementById('cartHint').textContent='挑选今晚和明天的菜吧';
+  }
+}
+
+function toggleCartDrawer(){
+  const drawer = document.getElementById('cartDrawer');
+  const overlay = document.getElementById('drawerOverlay');
+  if(drawer.classList.contains('open')){ closeCartDrawer(); return; }
+  renderCartDrawer();
+  drawer.classList.add('open');
+  overlay.classList.add('show');
+}
+function closeCartDrawer(){
+  document.getElementById('cartDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('show');
+}
+
+function renderCartDrawer(){
+  const entries = getCartEntries();
+  const body = document.getElementById('drawerBody');
+  if(entries.length===0){
+    body.innerHTML='<div class="drawer-empty"><div style="font-size:40px;margin-bottom:8px">🛒</div>购物车是空的</div>';
+    document.getElementById('drawerTotal').innerHTML='';
+    return;
+  }
+  const tonight = entries.filter(([,v])=>v.portion==='tonight').reduce((s,[,v])=>s+v.qty,0);
+  const tomorrow = entries.filter(([,v])=>v.portion==='tomorrow').reduce((s,[,v])=>s+v.qty,0);
+  body.innerHTML = entries.map(([name,v])=>`
+    <div class="drawer-item">
+      <span class="di-name">${name}</span>
+      <span class="di-portion ${v.portion==='tonight'?'eat-tonight':'pack-tomorrow'}" onclick="togglePortion('${esc(name)}')">
+        ${v.portion==='tonight'?'🍽️ 今晚':'🍱 明午'}
+      </span>
+      <div class="di-qty">
+        <button class="btn-minus" onclick="changeQtyDrawer('${esc(name)}',-1)">−</button>
+        <span>${v.qty}</span>
+        <button class="btn-plus" onclick="changeQtyDrawer('${esc(name)}',1)">+</button>
+      </div>
+    </div>
+  `).join('');
+  let summary = `<span>共 ${getCartTotal()} 道</span>`;
+  if(tonight>0) summary += ` · 🍽️今晚${tonight}道`;
+  if(tomorrow>0) summary += ` · 🍱明午${tomorrow}道`;
+  document.getElementById('drawerTotal').innerHTML = summary;
+}
+
+function changeQtyDrawer(name, delta){
+  changeQty(name, delta);
+  renderCartDrawer();
+  updateAllCartUI();
+}
+function togglePortion(name){
+  name = unesc(name);
+  if(!cart[name]) return;
+  cart[name].portion = cart[name].portion==='tonight'?'tomorrow':'tonight';
+  saveCart();
+  renderCartDrawer();
+  updateAllCartUI();
+}
+
+function clearCart(){
+  if(getCartTotal()===0) return;
+  showDialog('确定要清空购物车吗？',()=>{
+    cart={}; saveCart();
+    renderDishList(); updateAllCartUI(); closeCartDrawer();
+    toast('已清空');
+  });
+}
+
+// ==================== BLIND BOX ====================
+let bbFlavors = [];
+
+function renderBB(){
+  document.getElementById('flavorGrid').innerHTML = FLAVORS.map(f=>`
+    <span class="flavor-chip${bbFlavors.includes(f.k)?' active':''}" onclick="toggleFlavor('${f.k}')">${f.e} ${f.k}</span>
+  `).join('');
+  document.getElementById('bbCount').textContent = bbQty;
+  document.getElementById('bbResult').innerHTML = '';
+}
+
+function toggleFlavor(k){
+  const idx = bbFlavors.indexOf(k);
+  if(idx>=0) bbFlavors.splice(idx,1);
+  else bbFlavors.push(k);
+  renderBB();
+}
+
+function changeBBQty(d){
+  bbQty = Math.max(1, Math.min(5, bbQty + d));
+  document.getElementById('bbCount').textContent = bbQty;
+}
+
+function rollBB(){
+  // Filter pool
+  let pool = [...dishes];
+  if(bbFlavors.length > 0){
+    pool = pool.filter(d=> d.f.some(f=>bbFlavors.includes(f)));
+  }
+  if(pool.length===0){ toast('没有匹配口味的菜品，请调整筛选'); return; }
+
+  const n = Math.min(bbQty, pool.length);
+  const icon = document.getElementById('bbIcon');
+  const btn = document.getElementById('btnRoll');
+  btn.disabled = true;
+  icon.classList.add('rolling');
+  icon.textContent = '🎰';
+
+  let ticks=0;
+  const maxTicks=14;
+  const iv = setInterval(()=>{
+    icon.textContent = ['🎁','🎰','🎲','🍳','🥘','🍗','🐟','🍖'][Math.floor(Math.random()*8)];
+    ticks++;
+    if(ticks>=maxTicks){
+      clearInterval(iv);
+      const shuffled = [...pool].sort(()=>Math.random()-.5);
+      bbResult = shuffled.slice(0, n);
+      icon.classList.remove('rolling');
+      icon.textContent = '🎉';
+      showBBResult();
+      btn.disabled = false;
+    }
+  }, 90);
+}
+
+function showBBResult(){
+  document.getElementById('bbResult').innerHTML = `
+    <h4>🎯 为你抽中：</h4>
+    <div class="bb-result-dishes">
+      ${bbResult.map((d,i)=>`<span class="bb-res-dish" style="animation-delay:${i*0.08}s">${d.e} ${d.n}</span>`).join('')}
+    </div>
+    <button class="btn-add-bb" onclick="addBBToCart()">📋 全部加入购物车</button>
+  `;
+}
+
+function addBBToCart(){
+  bbResult.forEach(d=>{
+    if(!cart[d.n]) cart[d.n]={qty:0,portion:'tonight'};
+    cart[d.n].qty += 1;
+  });
+  saveCart(); updateAllCartUI();
+  toast(`已添加 ${bbResult.length} 道菜！`);
+  bbResult=[]; document.getElementById('bbResult').innerHTML='';
+}
+
+// ==================== ADMIN ====================
+function renderAdmin(){
+  if(isAdmin){
+    document.getElementById('adminLock').style.display='none';
+    document.getElementById('adminPanel').classList.add('show');
+    renderAdminPanel();
+  }else{
+    document.getElementById('adminLock').style.display='block';
+    document.getElementById('adminPanel').classList.remove('show');
+  }
+}
+
+function adminLogin(){
+  if(document.getElementById('adminPw').value===ADMIN_PW){
+    isAdmin=true; document.getElementById('adminPw').value='';
+    document.getElementById('lockError').style.display='none';
+    renderAdmin(); toast('✅ 已进入管理');
+  }else{
+    document.getElementById('lockError').style.display='block';
+    document.getElementById('adminPw').value='';
+  }
+}
+function adminLogout(){ isAdmin=false; renderAdmin(); }
+
+function renderAdminPanel(){
+  // Stats
+  const cats={'荤菜':0,'素菜':0,'海鲜':0,'凉菜':0,'汤煲':0};
+  dishes.forEach(d=>{ cats[d.c]=(cats[d.c]||0)+1; });
+  document.getElementById('adminStats').innerHTML = Object.entries(cats).map(([k,v])=>
+    `<div class="admin-stat"><div class="as-num">${v}</div><div class="as-label">${k}</div></div>`
+  ).join('');
+
+  // List
+  const isDef = d => DEFAULT_DISHES.some(dd=>dd.n===d.n);
+  document.getElementById('adminDishList').innerHTML = dishes.map(d=>`
+    <div class="admin-dish-item">
+      <span style="font-size:18px">${d.e}</span>
+      <span class="ad-name">${d.n}</span>
+      <span class="ad-badge ${isDef(d)?'default':'custom'}">${isDef(d)?'默认':'自定义'}</span>
+      <span class="ad-badge" style="background:#F5F5F5;color:var(--text3)">${d.c}</span>
+      <button class="btn-del" onclick="deleteDish('${esc(d.n)}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function addDish(){
+  const input = document.getElementById('newDishName');
+  const name = input.value.trim();
+  if(!name){ toast('请输入菜品名称'); return; }
+  if(dishes.some(d=>d.n===name)){ toast('该菜品已存在'); return; }
+  // Auto-detect category based on name or default to 荤菜
+  const cat = detectCat(name);
+  dishes.push({n:name,c:cat,cs:'川菜',f:['酱香'],r:true,e:'🍽️'});
+  saveDishes(); input.value=''; renderAdminPanel();
+  toast(`已添加：${name}`);
+}
+function detectCat(name){
+  if(/菜|豆|椒|茄|瓜|笋|菇|莲|花|薯|豆|腐/.test(name) && !/肉|鸡|鸭|鱼|虾|蟹|牛|猪|羊|贝|蛤|排|肠|血|蛋/.test(name)) return '素菜';
+  if(/鱼|虾|蟹|贝|蛤|鲈|鳗|鲍|参/.test(name)) return '海鲜';
+  if(/汤|煲/.test(name)) return '汤煲';
+  if(/凉|拌/.test(name)) return '凉菜';
+  return '荤菜';
+}
+
+function deleteDish(name){
+  name = unesc(name);
+  showDialog(`确定要删除「${name}」吗？`,()=>{
+    dishes = dishes.filter(d=>d.n!==name);
+    if(cart[name]) delete cart[name];
+    saveDishes(); saveCart(); renderAdminPanel(); updateAllCartUI();
+    toast(`已删除：${name}`);
+  });
+}
+
+function resetDishes(){
+  showDialog('确定恢复默认50道菜品吗？<br>自定义添加的菜品将被清除。',()=>{
+    dishes = cloneDefaults();
+    saveDishes(); renderAdminPanel();
+    toast('已恢复默认菜单');
+  });
+}
+
+// ==================== UTILS ====================
+function esc(s){ return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+function unesc(s){ return s.replace(/\\\\/g,'\\').replace(/\\'/g,"'").replace(/\\"/g,'"'); }
+
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+function showDialog(msg,cb){
+  document.getElementById('dMsg').innerHTML=msg;
+  document.getElementById('dOverlay').classList.add('show');
+  dialogCb=cb;
+  document.getElementById('dOk').onclick=()=>{closeDialog();if(dialogCb)dialogCb();};
+}
+function closeDialog(){
+  document.getElementById('dOverlay').classList.remove('show');
+  dialogCb=null;
+}
+
+// ==================== EVENT BINDINGS ====================
+document.addEventListener('DOMContentLoaded',()=>{
+  // Search
+  document.getElementById('searchInput').addEventListener('input',()=>{
+    document.getElementById('searchClear').style.display = document.getElementById('searchInput').value ? 'block' : 'none';
+    renderDishList();
+  });
+  // Admin enter key
+  document.getElementById('adminPw').addEventListener('keydown',e=>{if(e.key==='Enter')adminLogin();});
+  document.getElementById('newDishName').addEventListener('keydown',e=>{if(e.key==='Enter')addDish();});
+  // Initial render
+  renderOrder();
+  updateAllCartUI();
+});
+
+function clearSearch(){
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchClear').style.display='none';
+  renderDishList();
+}
+</script>
+</body>
+</html>
