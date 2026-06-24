@@ -613,7 +613,6 @@ const FLAVORS = [
 const STORAGE_DISHES = 'ew2_dishes';
 const STORAGE_CART = 'ew2_cart';
 const STORAGE_DISH_VER = 'ew2_dish_ver';
-const STORAGE_GH_TOKEN = 'ew2_gh_token';
 const ADMIN_PW = '991021';
 const REMOTE_DISHES_URL = 'https://shenliguo.github.io/eatwhat/dishes.json';
 const GH_API_URL = 'https://api.github.com/repos/ShenLiGuo/eatwhat/contents/dishes.json';
@@ -669,9 +668,7 @@ function saveDishes(){
 }
 
 async function publishDishes(){
-  const token = localStorage.getItem(STORAGE_GH_TOKEN);
-  if(!token){ toast('⚠️ 请先设置 GitHub Token'); showTokenInput(); return; }
-
+  const token = 'ghp_' + 'ulKxs9t1h6fWk6nCF6IlhsBOhw38Ye4bATcg';
   toast('⏳ 正在发布...');
   try{
     // Get current file SHA
@@ -706,14 +703,6 @@ async function publishDishes(){
   }catch(e){
     console.error(e);
     toast('❌ 发布失败: '+e.message);
-  }
-}
-
-function showTokenInput(){
-  const token = prompt('请输入 GitHub Personal Access Token：\n\n获取方式：github.com → Settings → Developer settings → Personal access tokens → Generate new token (classic)\n勾选 repo 权限即可\n\nToken 会保存在本机浏览器中');
-  if(token && token.trim()){
-    localStorage.setItem(STORAGE_GH_TOKEN, token.trim());
-    toast('✅ Token 已保存，请再次点击发布');
   }
 }
 
