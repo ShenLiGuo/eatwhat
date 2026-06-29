@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>扫码点菜</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; text-align: center; padding: 40px 20px; background: #FFF9F5; }
+  h2 { color: #E8590C; margin-bottom: 8px; }
+  p { color: #888; font-size: 14px; margin-bottom: 24px; }
+  .qr-box { display: inline-block; background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+  .qr-box img { display: block; width: 260px; height: 260px; }
+  .url { margin-top: 16px; font-size: 15px; color: #333; word-break: break-all; font-weight: 600; }
+  .tip { margin-top: 20px; font-size: 13px; color: #aaa; }
+</style>
+</head>
+<body>
+  <h2>🍳 今天吃啥 · 扫码点菜</h2>
+  <p>微信 / 浏览器扫码即可打开</p>
+  <div class="qr-box">
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://shenliguo.github.io/eatwhat/" alt="QR Code">
+  </div>
+  <div class="url">🔗 https://shenliguo.github.io/eatwhat/</div>
+  <div class="tip">📱 保存此二维码，随时扫码点菜</div>
+</body>
+</html>
