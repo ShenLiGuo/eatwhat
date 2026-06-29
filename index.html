@@ -784,34 +784,45 @@ let adminHasPendingChanges = false;
 function cloneDefaults(){ return DEFAULT_DISHES.map(d=>({...d})); }
 
 async function loadDishes(){
-  // Load local immediately first
-  const s = localStorage.getItem(STORAGE_DISHES);
-  if(s){ try{ dishes = JSON.parse(s); }catch(e){ dishes = cloneDefaults(); } }
-  else dishes = cloneDefaults();
-  if(!Array.isArray(dishes) || dishes.length===0) dishes = cloneDefaults();
+  // Always start with built-in DEFAULT_DISHES (200 dishes)
+  dishes = cloneDefaults();
+  const builtInVer = 5;
 
-  // Try remote sync with short timeout (don't block)
+  // Try to load newer version from localStorage (from admin publish)
+  const s = localStorage.getItem(STORAGE_DISHES);
+  if(s){
+    try{
+      const local = JSON.parse(s);
+      const localVer = parseInt(localStorage.getItem(STORAGE_DISH_VER) || '0');
+      if(localVer > builtInVer && Array.isArray(local) && local.length > 0){
+        dishes = local;
+        remoteVersion = localVer;
+      }
+    }catch(e){}
+  }
+  localStorage.setItem(STORAGE_DISHES, JSON.stringify(dishes));
+  localStorage.setItem(STORAGE_DISH_VER, String(Math.max(builtInVer, remoteVersion)));
+
+  // Try remote sync in background
   try{
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 5000);
+    const timer = setTimeout(() => ctrl.abort(), 4000);
     const resp = await fetch(REMOTE_DISHES_URL + '?t=' + Date.now(), {cache:'no-cache', signal: ctrl.signal});
     clearTimeout(timer);
     if(resp.ok){
       const data = await resp.json();
       if(data && data.dishes && Array.isArray(data.dishes)){
-        remoteVersion = data.version || 0;
-        const localVer = parseInt(localStorage.getItem(STORAGE_DISH_VER) || '0');
-        if(remoteVersion > localVer){
+        const rv = data.version || 0;
+        if(rv > remoteVersion){
           dishes = data.dishes;
+          remoteVersion = rv;
           localStorage.setItem(STORAGE_DISHES, JSON.stringify(dishes));
-          localStorage.setItem(STORAGE_DISH_VER, String(remoteVersion));
-          console.log('📡 已同步最新菜单 v' + remoteVersion);
-          renderOrder();
-          updateAllCartUI();
+          localStorage.setItem(STORAGE_DISH_VER, String(rv));
+          renderOrder(); updateAllCartUI();
         }
       }
     }
-  }catch(e){ console.log('⚠️ 远程同步跳过，使用本地缓存'); }
+  }catch(e){}
 }
 
 function saveDishes(){
