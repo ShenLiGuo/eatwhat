@@ -823,8 +823,9 @@ async function loadDishes(){
       }
     }catch(e){}
   }
+  remoteVersion = Math.max(builtInVer, remoteVersion);
   localStorage.setItem(STORAGE_DISHES, JSON.stringify(dishes));
-  localStorage.setItem(STORAGE_DISH_VER, String(Math.max(builtInVer, remoteVersion)));
+  localStorage.setItem(STORAGE_DISH_VER, String(remoteVersion));
 
   // Try remote sync in background
   try{
