@@ -363,6 +363,10 @@ body{
 .tab-item.active{color:var(--primary)}
 .tab-item.active .ti{transform:scale(1.08)}
 
+/* ====== Diet Page ====== */
+.diet-hero{display:flex;align-items:center;gap:8px;padding:8px 16px 16px;font-size:12px;color:var(--text2)}
+.diet-hero-icon{font-size:28px}
+
 /* ====== Toast ====== */
 .toast{
   position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:300;
@@ -477,6 +481,22 @@ body{
         <div style="display:flex;gap:8px;margin-top:16px"><button class="btn-publish" onclick="publishDishes()" id="btnPublish">📡 发布更新</button><button class="btn-reset" onclick="resetDishes()" style="margin-top:0;flex:1">🔄 恢复默认</button></div>
       </div>
     </div>
+
+    <!-- ===== PAGE: DIET ===== -->
+    <div class="page" id="page-diet">
+      <div class="search-bar">
+        <div class="search-wrap">
+          <span class="s-icon">🔍</span>
+          <input id="dietSearch" placeholder="搜减脂菜品..." autocomplete="off" oninput="renderDietList()">
+          <button class="s-clear" id="dietSearchClear" onclick="document.getElementById('dietSearch').value='';renderDietList()" style="display:none">✕</button>
+        </div>
+      </div>
+      <div class="diet-hero">
+        <span class="diet-hero-icon">🥗</span>
+        <span>减脂轻食 · 低卡高蛋白 · 日常食材</span>
+      </div>
+      <div class="dish-list" id="dietList"></div>
+    </div>
   </div>
 
   <!-- Cart Bar -->
@@ -501,6 +521,9 @@ body{
     </div>
     <div class="tab-item" data-page="blindbox" onclick="switchTab('blindbox')">
       <span class="ti">🎲</span>盲盒
+    </div>
+    <div class="tab-item" data-page="diet" onclick="switchTab('diet')">
+      <span class="ti">🥗</span>减脂
     </div>
     <div class="tab-item" data-page="admin" onclick="switchTab('admin')">
       <span class="ti">⚙️</span>管理
@@ -892,6 +915,7 @@ function switchTab(tab){
   document.querySelector('.tab-item[data-page="'+tab+'"]').classList.add('active');
   if(tab==='order') renderOrder();
   if(tab==='blindbox') renderBB();
+  if(tab==='diet') renderDietList();
   if(tab==='admin') renderAdmin();
 }
 
@@ -1138,6 +1162,44 @@ async function sendToWechat(){
   }catch(e){
     console.error(e); toast('❌ 推送失败，请重试');
   }
+}
+
+// ==================== DIET PAGE ====================
+function renderDietList(){
+  const search = (document.getElementById('dietSearch') || {}).value || '';
+  const term = search.trim().toLowerCase();
+  let list = dishes.filter(d => d.c === '减脂');
+  if(term) list = list.filter(d => d.n.toLowerCase().includes(term));
+  document.getElementById('dietSearchClear').style.display = search ? 'block' : 'none';
+
+  const el = document.getElementById('dietList');
+  if(list.length === 0){
+    el.innerHTML = '<div style="text-align:center;padding:48px 0;color:var(--text3)"><div style="font-size:48px">🥗</div>没有匹配的减脂菜品</div>';
+    return;
+  }
+  el.innerHTML = list.map(d => {
+    const qty = (cart[d.n]||{}).qty || 0;
+    const grad = CAT_GRADS['减脂'] || CAT_GRADS['素菜'];
+    const rTag = d.r ? '<span class="dish-tag reheat">🍱 适合带饭</span>' : '<span class="dish-tag noreheat">⏰ 现吃更佳</span>';
+    return `
+    <div class="dish-card">
+      <div class="dish-img" style="--fb-bg:${grad}">
+        <img src="${dishImgUrl(d)}" alt="${d.n}" loading="lazy" onerror="this.style.display='none';this.parentElement.querySelector('.fallback').style.display='flex'">
+        <span class="fallback" style="display:none">${d.e}</span>
+      </div>
+      <div class="dish-info">
+        <div class="dish-name">${d.n}</div>
+        <div class="dish-tags"><span class="dish-tag cuisine-sichuan">🥗减脂</span>${d.f.filter(f=>f!=='减脂').slice(0,2).map(f=>`<span class="dish-tag">${f}</span>`).join('')}</div>
+        <div class="dish-foot">
+          <span class="dish-reheat">${rTag}</span>
+          <div class="qty-ctrl">
+            ${qty>0?`<button class="btn-minus" onclick="changeQty('${esc(d.n)}',-1)">−</button><span class="qty-num">${qty}</span>`:''}
+            <button class="btn-plus" onclick="changeQty('${esc(d.n)}',1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ==================== BLIND BOX ====================
