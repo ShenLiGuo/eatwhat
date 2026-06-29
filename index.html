@@ -363,7 +363,6 @@ body{
 .tab-item.active{color:var(--primary)}
 .tab-item.active .ti{transform:scale(1.08)}
 
-.diet-hero{display:flex;align-items:center;gap:8px;padding:8px 16px 16px;font-size:12px;color:var(--text2)}
 /* ====== Toast ====== */
 .toast{
   position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:300;
@@ -478,13 +477,6 @@ body{
         <div style="display:flex;gap:8px;margin-top:16px"><button class="btn-publish" onclick="publishDishes()" id="btnPublish">📡 发布更新</button><button class="btn-reset" onclick="resetDishes()" style="margin-top:0;flex:1">🔄 恢复默认</button></div>
       </div>
     </div>
-
-    <!-- ===== PAGE: DIET ===== -->
-    <div class="page" id="page-diet">
-      <div class="search-bar"><div class="search-wrap"><span class="s-icon">🔍</span><input id="dietSearch" placeholder="搜减脂菜品..." autocomplete="off" oninput="renderDietPage()"></div></div>
-      <div class="diet-hero"><span style="font-size:28px">🥗</span> 减脂轻食 · 低卡高蛋白 · 日常食材</div>
-      <div class="dish-list" id="dietDishList"></div>
-    </div>
   </div>
 
   <!-- Cart Bar -->
@@ -509,9 +501,6 @@ body{
     </div>
     <div class="tab-item" data-page="blindbox" onclick="switchTab('blindbox')">
       <span class="ti">🎲</span>盲盒
-    </div>
-    <div class="tab-item" data-page="diet" onclick="switchTab('diet')">
-      <span class="ti">🥗</span>减脂
     </div>
     <div class="tab-item" data-page="admin" onclick="switchTab('admin')">
       <span class="ti">⚙️</span>管理
@@ -713,63 +702,14 @@ const CAT_GRADS = {
   '素菜':'linear-gradient(135deg,#E8F5E9,#CDE8D0)',
   '海鲜':'linear-gradient(135deg,#E3F2FD,#C5E3FC)',
   '凉菜':'linear-gradient(135deg,#FFFDE7,#FFF9C4)',
-  '汤煲':'linear-gradient(135deg,#FFF3E0,#FFE4C4)','减脂':'linear-gradient(135deg,#E8F5E9,#C8E6C9)',
+  '汤煲':'linear-gradient(135deg,#FFF3E0,#FFE4C4)',
 };
 const CAT_ORDER = ['荤菜','素菜','海鲜','凉菜','汤煲'];
 
 const FLAVORS = [
   {k:'麻辣',e:'🌶️'},{k:'香辣',e:'🌶️'},{k:'酸辣',e:'🍋'},
   {k:'蒜香',e:'🧄'},{k:'酱香',e:'🍯'},{k:'酸甜',e:'🍬'},
-  {k:'清淡',e:'🥬'},{k:'孜然',e:'✨'},{k:'减脂',e:'🥗'},,
-  {n:'西兰花炒鸡胸',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:true,e:'🥦',en:'broccoli chicken breast'},
-  {n:'蒜蓉蒸鸡胸',c:'减脂',cs:'减脂',f:["减脂","蒜香","清淡"],r:true,e:'🍗',en:'garlic steamed chicken breast'},
-  {n:'彩椒炒牛肉',c:'减脂',cs:'减脂',f:["减脂","香辣"],r:true,e:'🫑',en:'bell pepper beef stir fry lean'},
-  {n:'番茄煮鱼片',c:'减脂',cs:'减脂',f:["减脂","酸甜","清淡"],r:true,e:'🐟',en:'tomato fish fillet light'},
-  {n:'葱姜蒸鸡腿',c:'减脂',cs:'减脂',f:["减脂","蒜香","清淡"],r:true,e:'🍗',en:'ginger scallion steamed chicken'},
-  {n:'芹菜炒牛肉',c:'减脂',cs:'减脂',f:["减脂","香辣"],r:true,e:'🥩',en:'celery beef stir fry lean'},
-  {n:'香菇蒸鸡胸',c:'减脂',cs:'减脂',f:["减脂","清淡","酱香"],r:true,e:'🍄',en:'mushroom steamed chicken breast'},
-  {n:'黑椒煎鸡胸',c:'减脂',cs:'减脂',f:["减脂","酱香"],r:true,e:'🍗',en:'black pepper chicken breast pan'},
-  {n:'冬瓜炖鸡胸',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:true,e:'🍲',en:'winter melon chicken breast stew'},
-  {n:'秋葵炒牛肉',c:'减脂',cs:'减脂',f:["减脂","蒜香","清淡"],r:true,e:'🌿',en:'okra beef stir fry lean'},
-  {n:'菌菇鸡胸煲',c:'减脂',cs:'减脂',f:["减脂","清淡","酱香"],r:true,e:'🍄',en:'mushroom chicken breast pot'},
-  {n:'番茄炖鱼块',c:'减脂',cs:'减脂',f:["减脂","酸甜","清淡"],r:true,e:'🐟',en:'tomato fish stew light'},
-  {n:'豆腐蒸鸡胸',c:'减脂',cs:'减脂',f:["减脂","清淡","蒜香"],r:true,e:'🫘',en:'tofu steamed chicken breast'},
-  {n:'芦笋炒牛肉',c:'减脂',cs:'减脂',f:["减脂","清淡","蒜香"],r:true,e:'🌿',en:'asparagus beef stir fry lean'},
-  {n:'菠菜拌鸡丝',c:'减脂',cs:'减脂',f:["减脂","清淡","蒜香"],r:false,e:'🥬',en:'spinach shredded chicken salad'},
-  {n:'蒜蓉娃娃菜',c:'减脂',cs:'减脂',f:["减脂","蒜香","清淡"],r:false,e:'🥬',en:'garlic baby cabbage steamed'},
-  {n:'清炒芥蓝',c:'减脂',cs:'减脂',f:["减脂","蒜香","清淡"],r:false,e:'🥬',en:'stir fried Chinese broccoli'},
-  {n:'蒸南瓜',c:'减脂',cs:'减脂',f:["减脂","清淡","酸甜"],r:true,e:'🎃',en:'steamed pumpkin'},
-  {n:'番茄炒菜花',c:'减脂',cs:'减脂',f:["减脂","清淡","酸甜"],r:true,e:'🥦',en:'tomato cauliflower stir fry'},
-  {n:'菌菇炒时蔬',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:false,e:'🍄',en:'mushroom mixed vegetables'},
-  {n:'白灼秋葵',c:'减脂',cs:'减脂',f:["减脂","清淡","蒜香"],r:false,e:'🌿',en:'blanched okra light'},
-  {n:'凉拌芹菜',c:'减脂',cs:'减脂',f:["减脂","清淡","蒜香"],r:false,e:'🥬',en:'celery salad cold'},
-  {n:'蒸山药',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:true,e:'🥔',en:'steamed Chinese yam'},
-  {n:'蒜蓉蒸金针菇',c:'减脂',cs:'减脂',f:["减脂","蒜香","清淡"],r:false,e:'🍄',en:'garlic steamed enoki'},
-  {n:'番茄炖豆腐',c:'减脂',cs:'减脂',f:["减脂","清淡","酸甜"],r:true,e:'🫘',en:'tomato tofu stew light'},
-  {n:'凉拌菠菜',c:'减脂',cs:'减脂',f:["减脂","蒜香","清淡"],r:false,e:'🥬',en:'spinach salad cold'},
-  {n:'黄瓜炒木耳',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:false,e:'🥒',en:'cucumber wood ear stir fry'},
-  {n:'蒸玉米',c:'减脂',cs:'减脂',f:["减脂","清淡","酸甜"],r:true,e:'🌽',en:'steamed corn'},
-  {n:'西兰花炒口蘑',c:'减脂',cs:'减脂',f:["减脂","清淡","蒜香"],r:true,e:'🥦',en:'broccoli mushroom stir fry'},
-  {n:'番茄菌菇汤',c:'减脂',cs:'减脂',f:["减脂","清淡","酸甜"],r:true,e:'🍲',en:'tomato mushroom soup light'},
-  {n:'冬瓜海带汤',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:true,e:'🍲',en:'winter melon seaweed soup'},
-  {n:'豆腐青菜汤',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:false,e:'🍲',en:'tofu greens soup light'},
-  {n:'萝卜丝虾仁汤',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:false,e:'🍲',en:'radish shrimp soup light'},
-  {n:'丝瓜蛋花汤',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:false,e:'🍲',en:'loofah egg drop soup'},
-  {n:'菌菇豆腐汤',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:true,e:'🍲',en:'mushroom tofu soup light'},
-  {n:'番茄豆腐汤',c:'减脂',cs:'减脂',f:["减脂","清淡","酸甜"],r:true,e:'🍲',en:'tomato tofu soup light'},
-  {n:'紫菜虾皮汤',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:false,e:'🍲',en:'seaweed dried shrimp soup'},
-  {n:'白菜豆腐汤',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:true,e:'🍲',en:'napa tofu soup light'},
-  {n:'冬瓜虾仁汤',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:false,e:'🍲',en:'winter melon shrimp soup'},
-  {n:'清蒸鳕鱼',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:false,e:'🐟',en:'steamed cod fish light'},
-  {n:'柠檬蒸虾',c:'减脂',cs:'减脂',f:["减脂","清淡","酸甜"],r:false,e:'🦐',en:'lemon steamed shrimp light'},
-  {n:'白灼鱿鱼',c:'减脂',cs:'减脂',f:["减脂","清淡"],r:false,e:'🦑',en:'blanched squid light'},
-  {n:'葱油蒸带子',c:'减脂',cs:'减脂',f:["减脂","蒜香","清淡"],r:false,e:'🦪',en:'scallion steamed scallops'},
-  {n:'清蒸鲷鱼',c:'减脂',cs:'减脂',f:["减脂","清淡","蒜香"],r:false,e:'🐟',en:'steamed sea bream light'},
-  {n:'凉拌鸡丝',c:'减脂',cs:'减脂',f:["减脂","蒜香","酱香"],r:false,e:'🍗',en:'shredded chicken salad cold'},
-  {n:'醋拌海带',c:'减脂',cs:'减脂',f:["减脂","酸甜","蒜香"],r:false,e:'🥬',en:'vinegar kelp salad cold'},
-  {n:'凉拌魔芋丝',c:'减脂',cs:'减脂',f:["减脂","酸辣","蒜香"],r:false,e:'🍜',en:'konjac noodle salad cold'},
-  {n:'剁椒蒸金针菇',c:'减脂',cs:'减脂',f:["减脂","香辣","蒜香"],r:false,e:'🍄',en:'chopped chili steamed enoki'},
-  {n:'柠檬手撕鸡',c:'减脂',cs:'减脂',f:["减脂","酸甜","蒜香"],r:false,e:'🍗',en:'lemon shredded chicken cold'}
+  {k:'清淡',e:'🥬'},{k:'孜然',e:'✨'},
 ];
 
 const STORAGE_DISHES = 'ew2_dishes';
@@ -889,7 +829,6 @@ function switchTab(tab){
   document.querySelector('.tab-item[data-page="'+tab+'"]').classList.add('active');
   if(tab==='order') renderOrder();
   if(tab==='blindbox') renderBB();
-  if(tab==='diet') renderDietPage();
   if(tab==='admin') renderAdmin();
 }
 
@@ -1136,22 +1075,6 @@ async function sendToWechat(){
   }catch(e){
     console.error(e); toast('❌ 推送失败，请重试');
   }
-}
-
-// ==================== DIET PAGE ====================
-function renderDietPage(){
-  const search = (document.getElementById('dietSearch')||{}).value||'';
-  const term = search.trim().toLowerCase();
-  let list = dishes.filter(d => d.c === '减脂');
-  if(term) list = list.filter(d => d.n.toLowerCase().includes(term));
-  const el = document.getElementById('dietDishList');
-  if(list.length===0){ el.innerHTML='<div class="empty"><div style="font-size:48px">🥗</div>没有匹配的减脂菜品</div>'; return; }
-  el.innerHTML = list.map(d=>{
-    const qty = (cart[d.n]||{}).qty||0;
-    const g = CAT_GRADS['减脂']||CAT_GRADS['素菜'];
-    const rTag = d.r?'<span class="dish-tag reheat">🍱适合带饭</span>':'<span class="dish-tag noreheat">⏰现吃更佳</span>';
-    return '<div class="dish-card"><div class="dish-img" style="--fb-bg:'+g+'"><img src="'+dishImgUrl(d)+'" alt="'+d.n+'" loading="lazy" onerror="this.style.display=\'none\';this.parentElement.querySelector(\'.fallback\').style.display=\'flex\'"><span class="fallback" style="display:none;background:'+g+'">'+d.e+'</span></div><div class="dish-info"><div class="dish-name">'+d.n+'</div><div class="dish-tags">'+d.f.filter(f=>f!=='减脂').slice(0,2).map(f=>'<span class="dish-tag">'+f+'</span>').join('')+'</div><div class="dish-foot"><span class="dish-reheat">'+rTag+'</span><div class="qty-ctrl">'+(qty>0?'<button class="btn-minus" onclick="changeQty(\''+esc(d.n)+'\',-1)">−</button><span class="qty-num">'+qty+'</span>':'')+'<button class="btn-plus" onclick="changeQty(\''+esc(d.n)+'\',1)">+</button></div></div></div></div>';
-  }).join('');
 }
 
 // ==================== BLIND BOX ====================
